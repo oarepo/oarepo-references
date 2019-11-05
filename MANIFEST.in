@@ -1,0 +1,29 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright (C) 2019 Miroslav Bauer, CESNET.
+#
+# oarepo-references is free software; you can redistribute it and/or modify
+# it under the terms of the MIT License; see LICENSE file for more details.
+
+# TODO: Generate this manifest file by running the following commands:
+# (please sort the lines in this file after running below commands)
+#
+#  git init
+#  git add -A
+#  pip install -e .[all]
+#  check-manifest -u
+
+exclude .coveragerc
+exclude .pydocstyle
+exclude Dockerfile
+exclude docker-compose
+exclude pytest.ini
+exclude *.yml
+exclude run-tests.sh
+exclude tests
+include *.rst
+include .dockerignore
+include .editorconfig
+include .tx/config
+prune docs/_build
+recursive-include oarepo_references/translations *.po *.pot *.mo

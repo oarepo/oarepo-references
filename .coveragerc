@@ -1,0 +1,7 @@
+[run]
+omit =
+    oarepo_references/alembic/*
+    migrations/*
+    oarepo_references/included_mappings/*
+    oarepo_references/jsonschemas/*
+    oarepo_references/cli.py
