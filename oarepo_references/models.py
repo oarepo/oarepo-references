@@ -17,10 +17,10 @@ from sqlalchemy import String, UniqueConstraint
 from sqlalchemy_utils.types import UUIDType
 
 
-class RecordReferences(db.Model, Timestamp):
+class RecordReference(db.Model, Timestamp):
     """Represent a record references mapping entry.
 
-    The RecordReferences object contains a ``created`` and  a ``updated``
+    The RecordReference object contains a ``created`` and  a ``updated``
     timestamps that are automatically updated.
     """
     # Enables SQLAlchemy-Continuum versioning
@@ -30,14 +30,14 @@ class RecordReferences(db.Model, Timestamp):
 
     __table_args__ = (UniqueConstraint('record_uuid', 'reference', name='_record_reference_uc'),)
 
-    def __init__(self, data, model=None):
+    def __init__(self, record_uuid: uuid.UUID, reference: str):
         """Initialize record reference instance
 
-        :param data: Dict with record metadata.
-        :param model: :class:`~invenio_records.models.RecordMetadata` instance.
+        :param record_uuid: ID of an Invenio record
+        :param reference: value of $ref reference
         """
-        self.model = model
-        super(RecordReference, self).__init__(data or {})
+        self.record_uuid = record_uuid
+        self.reference = reference
 
     id = db.Column(
         UUIDType,
@@ -69,5 +69,5 @@ class RecordReferences(db.Model, Timestamp):
 
 
 __all__ = (
-    'RecordReferences',
+    'RecordReference',
 )
