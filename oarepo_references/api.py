@@ -17,7 +17,7 @@ from invenio_search import current_search_client
 from oarepo_references.models import RecordReference
 
 
-class RecordReferenceAPI(db.Model, Timestamp):
+class RecordReferenceAPI(object):
     """Represent a record reference.
     """
     def __init__(self):
