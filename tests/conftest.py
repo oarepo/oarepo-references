@@ -13,15 +13,11 @@ fixtures are available.
 
 from __future__ import absolute_import, print_function
 
-import shutil
-import tempfile
-
 import pytest
 from flask import Flask
 from flask_babelex import Babel
 
 from oarepo_references import OARepoReferences
-from oarepo_references.views import blueprint
 
 
 @pytest.fixture(scope='module')
@@ -36,11 +32,12 @@ def celery_config():
 @pytest.fixture(scope='module')
 def create_app(instance_path):
     """Application factory fixture."""
+
     def factory(**config):
         app = Flask('testapp', instance_path=instance_path)
         app.config.update(**config)
         Babel(app)
         OARepoReferences(app)
-        app.register_blueprint(blueprint)
         return app
+
     return factory

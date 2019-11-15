@@ -9,6 +9,8 @@
 
 from __future__ import absolute_import, print_function
 from invenio_records.signals import after_record_insert, after_record_update, after_record_delete, before_record_update
+
+from oarepo_references.api import RecordReferenceAPI
 from oarepo_references.signals import create_references_record, update_references_record, delete_references_record, \
     convert_record_refs
 
@@ -21,6 +23,10 @@ class _RecordReferencesState(object):
     def __init__(self, app):
         """Initialize state."""
         self.app = app
+        self.api = RecordReferenceAPI()
+
+    def get_records(self, reference):
+        return self.api.get_records(reference)
 
 
 class OARepoReferences(object):

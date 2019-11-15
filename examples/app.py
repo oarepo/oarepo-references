@@ -47,10 +47,8 @@ from flask import Flask
 from flask_babelex import Babel
 
 from oarepo_references import OARepoReferences
-from oarepo_references.views import blueprint
 
 # Create Flask application
 app = Flask(__name__)
 Babel(app)
 OARepoReferences(app)
-app.register_blueprint(blueprint)
