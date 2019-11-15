@@ -4,12 +4,36 @@
 from __future__ import absolute_import, print_function
 
 
-def keys_in_dict(data: dict, key='$ref'):
+def transform_dicts_in_data(data, func):
+    """
+    Calls a function on all dicts contained in data input
+    :param data: data dict or list
+    """
+    if isinstance(data, list):
+        data = {'_': data}
+
+    for key,value in data.items():
+        if isinstance(value, dict):
+            data[key] = transform_dicts_in_data(value, func)
+        elif isinstance(value, list):
+            for idx, v in enumerate(value):
+                if isinstance(v, dict) or isinstance(v, list):
+                    data[key][idx] = transform_dicts_in_data(v, func)
+            continue
+
+    if isinstance(data, dict):
+        return func(data)
+
+
+def keys_in_dict(data, key='$ref'):
     """
     Returns an array of all key occurences in a given dict
-    :param record: data dict
+    :param record: data dict or list
     :return: Array[object] list of values of all occurences of a given key
     """
+    if isinstance(data, list):
+        data = {'_': data}
+
     for k, v in data.items():
         if k == key:
             yield v
@@ -18,6 +42,6 @@ def keys_in_dict(data: dict, key='$ref'):
                 yield result
         elif isinstance(v, list):
             for d in v:
-                for result in keys_in_dict(d, key):
-                    yield result
-
+                if isinstance(d, dict) or isinstance(d, list):
+                    for result in keys_in_dict(d, key):
+                        yield result

@@ -9,13 +9,26 @@
 
 from __future__ import absolute_import, print_function
 
-from functools import wraps
-
 from invenio_db import db
 from invenio_records.errors import MissingModelError
 
+from flask_taxonomies.marshmallow import TaxonomySchemaV1
 from oarepo_references.models import RecordReference
-from oarepo_references.utils import keys_in_dict
+from oarepo_references.utils import keys_in_dict, transform_dicts_in_data
+
+
+def convert_taxonomy_refs(in_data):
+    try:
+        result = TaxonomySchemaV1().load(in_data)
+        if not result.errors:
+            return result.data
+    except ValueError:
+        pass
+
+    return in_data
+
+def convert_record_refs(sender, record, *args, **kwargs):
+    transform_dicts_in_data(record, convert_taxonomy_refs)
 
 
 def create_references_record(sender, record, *args, **kwargs):
@@ -33,15 +46,18 @@ def create_references_record(sender, record, *args, **kwargs):
 def update_references_record(sender, record, *args, **kwargs):
     # Find all entries for record id
     rrs = RecordReference.query.filter_by(record_uuid=record.model.id)
-    refs = keys_in_dict(record)
+    rec_refs = list(keys_in_dict(record))
+    db_refs = [r[0] for r in rrs.values('reference')]
+
+    record.validate()
 
     # Delete removed/add added references
     with db.session.begin_nested():
         for rr in rrs.all():
-            if rr.reference not in rrs:
+            if rr.reference not in rec_refs:
                 db.session.delete(rr)
-        for ref in refs:
-            if ref not in rrs.values('reference'):
+        for ref in rec_refs:
+            if ref not in db_refs:
                 rr = RecordReference(record_uuid=record.model.id, reference=ref)
                 db.session.add(rr)
 

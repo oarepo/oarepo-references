@@ -8,8 +8,9 @@
 """OArepo module for tracking and updating references in Invenio records"""
 
 from __future__ import absolute_import, print_function
-from invenio_records.signals import after_record_insert, after_record_update, after_record_delete
-from oarepo_references.signals import create_references_record, update_references_record, delete_references_record
+from invenio_records.signals import after_record_insert, after_record_update, after_record_delete, before_record_update
+from oarepo_references.signals import create_references_record, update_references_record, delete_references_record, \
+    convert_record_refs
 
 from . import config
 
@@ -36,6 +37,7 @@ class OARepoReferences(object):
 
         # Connect invenio-records signal handlers
         after_record_insert.connect(create_references_record)
+        before_record_update.connect(convert_record_refs)
         after_record_update.connect(update_references_record)
         after_record_delete.connect(delete_references_record)
 
