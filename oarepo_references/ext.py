@@ -28,6 +28,9 @@ class _RecordReferencesState(object):
     def get_records(self, reference):
         return self.api.get_records(reference)
 
+    def reindex_referencing_records(self, reference):
+        self.api.reindex_referencing_records(reference)
+
 
 class OARepoReferences(object):
     """oarepo-references extension."""

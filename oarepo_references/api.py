@@ -20,8 +20,7 @@ from oarepo_references.models import RecordReference
 class RecordReferenceAPI(object):
     """Represent a record reference.
     """
-    def __init__(self):
-        self.indexer_version_type = None
+    indexer_version_type = None
 
     @classmethod
     def get_records(self, reference):
