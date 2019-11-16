@@ -81,6 +81,9 @@ setup(
         'invenio_base.apps': [
             'oarepo_references = oarepo_references:OARepoReferences',
         ],
+        'invenio_base.api_apps': [
+            'oarepo_references = oarepo_references.ext:OARepoReferences',
+        ],
         'invenio_i18n.translations': [
             'messages = oarepo_references',
         ],

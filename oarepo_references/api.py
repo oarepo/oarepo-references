@@ -11,6 +11,7 @@ from __future__ import absolute_import, print_function
 
 from invenio_db import db
 from invenio_indexer.api import RecordIndexer
+from invenio_records import Record
 from invenio_records.models import Timestamp
 from invenio_search import current_search_client
 
@@ -23,21 +24,27 @@ class RecordReferenceAPI(object):
     indexer_version_type = None
 
     @classmethod
-    def get_records(self, reference):
+    def get_records(self, reference, exact=False):
         """Retrieve multiple records by reference.
 
         :param reference: Reference URI
         :returns: A list of :class:`RecordReference` instances containing the reference.
         """
         with db.session.no_autoflush:
-            query = RecordReference.query.filter(RecordReference.reference == reference)
+            if exact:
+                query = RecordReference.query.filter(RecordReference.reference == reference)
+            else:
+                query = RecordReference.query.filter(RecordReference.reference.startswith(reference))
 
             return query.all()
 
     @classmethod
     def reindex_referencing_records(self, reference):
-        records = self.get_records(reference)
-        RecordIndexer().bulk_index(records)
+        refs = self.get_records(reference)
+        records = Record.get_records([r.record_uuid for r in refs])
+        recids = [r.id for r in records]
+
+        RecordIndexer().bulk_index(recids)
         RecordIndexer(version_type=self.indexer_version_type).process_bulk_queue(
             es_bulk_kwargs={'raise_on_error': True})
         current_search_client.indices.flush()
