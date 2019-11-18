@@ -58,8 +58,8 @@ class RecordReferenceAPI(object):
     def update_references_from_record(cls, record):
         # Find all entries for record id
         rrs = RecordReference.query.filter_by(record_uuid=record.model.id)
-        rec_refs = list(keys_in_dict(record))
-        db_refs = [r[0] for r in rrs.values('reference')]
+        rec_refs = list(set(list(keys_in_dict(record))))
+        db_refs = list(set([r[0] for r in rrs.values('reference')]))
 
         record.validate()
 
