@@ -14,6 +14,7 @@ from invenio_records.errors import MissingModelError
 
 from flask_taxonomies.marshmallow import TaxonomySchemaV1
 from oarepo_references.models import RecordReference
+from oarepo_references.proxies import current_oarepo_references
 from oarepo_references.utils import keys_in_dict, transform_dicts_in_data
 
 
@@ -44,24 +45,7 @@ def create_references_record(sender, record, *args, **kwargs):
 
 
 def update_references_record(sender, record, *args, **kwargs):
-    # Find all entries for record id
-    rrs = RecordReference.query.filter_by(record_uuid=record.model.id)
-    rec_refs = list(keys_in_dict(record))
-    db_refs = [r[0] for r in rrs.values('reference')]
-
-    record.validate()
-
-    # Delete removed/add added references
-    with db.session.begin_nested():
-        for rr in rrs.all():
-            if rr.reference not in rec_refs:
-                db.session.delete(rr)
-        for ref in rec_refs:
-            if ref not in db_refs:
-                rr = RecordReference(record_uuid=record.model.id, reference=ref)
-                db.session.add(rr)
-
-    db.session.commit()
+    current_oarepo_references.update_references_from_record(record)
 
 
 def delete_references_record(sender, record, *args, **kwargs):

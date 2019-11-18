@@ -16,6 +16,7 @@ from invenio_records.models import Timestamp
 from invenio_search import current_search_client
 
 from oarepo_references.models import RecordReference
+from oarepo_references.utils import keys_in_dict
 
 
 class RecordReferenceAPI(object):
@@ -24,7 +25,7 @@ class RecordReferenceAPI(object):
     indexer_version_type = None
 
     @classmethod
-    def get_records(self, reference, exact=False):
+    def get_records(cls, reference, exact=False):
         """Retrieve multiple records by reference.
 
         :param reference: Reference URI
@@ -39,15 +40,37 @@ class RecordReferenceAPI(object):
             return query.all()
 
     @classmethod
-    def reindex_referencing_records(self, reference):
-        refs = self.get_records(reference)
+    def reindex_referencing_records(cls, reference):
+        refs = cls.get_records(reference)
         records = Record.get_records([r.record_uuid for r in refs])
         recids = [r.id for r in records]
 
         RecordIndexer().bulk_index(recids)
-        RecordIndexer(version_type=self.indexer_version_type).process_bulk_queue(
+        RecordIndexer(version_type=cls.indexer_version_type).process_bulk_queue(
             es_bulk_kwargs={'raise_on_error': True})
         current_search_client.indices.flush()
+
+    @classmethod
+    def update_references_from_record(cls, record):
+        # Find all entries for record id
+        rrs = RecordReference.query.filter_by(record_uuid=record.model.id)
+        rec_refs = list(keys_in_dict(record))
+        db_refs = [r[0] for r in rrs.values('reference')]
+
+        record.validate()
+
+        # Delete removed/add added references
+        with db.session.begin_nested():
+            for rr in rrs.all():
+                if rr.reference not in rec_refs:
+                    db.session.delete(rr)
+            for ref in rec_refs:
+                if ref not in db_refs:
+                    rr = RecordReference(record_uuid=record.model.id, reference=ref)
+                    db.session.add(rr)
+
+        db.session.commit()
+
 
 __all__ = (
     'RecordReferenceAPI',

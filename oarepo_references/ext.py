@@ -31,6 +31,9 @@ class _RecordReferencesState(object):
     def reindex_referencing_records(self, reference):
         self.api.reindex_referencing_records(reference)
 
+    def update_references_from_record(self, record):
+        self.api.update_references_from_record(record)
+
 
 class OARepoReferences(object):
     """oarepo-references extension."""

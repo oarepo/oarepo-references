@@ -84,6 +84,9 @@ setup(
         'invenio_base.api_apps': [
             'oarepo_references = oarepo_references.ext:OARepoReferences',
         ],
+        'flask.commands': [
+            'references = oarepo_references.cli:references',
+        ],
         'invenio_i18n.translations': [
             'messages = oarepo_references',
         ],
