@@ -33,9 +33,13 @@ class RecordReferenceAPI(object):
         """
         with db.session.no_autoflush:
             if exact:
-                query = RecordReference.query.filter(RecordReference.reference == reference)
+                query = RecordReference.query\
+                    .filter(RecordReference.reference == reference)\
+                    .distinct(RecordReference.record_uuid)
             else:
-                query = RecordReference.query.filter(RecordReference.reference.startswith(reference))
+                query = RecordReference.query\
+                    .filter(RecordReference.reference.startswith(reference))\
+                    .distinct(RecordReference.record_uuid)
 
             return query.all()
 
