@@ -28,8 +28,8 @@ class _RecordReferencesState(object):
     def get_records(self, reference):
         return self.api.get_records(reference)
 
-    def reindex_referencing_records(self, reference):
-        self.api.reindex_referencing_records(reference)
+    def reindex_referencing_records(self, ref=None, record=None):
+        self.api.reindex_referencing_records(ref, record)
 
     def update_references_from_record(self, record):
         self.api.update_references_from_record(record)

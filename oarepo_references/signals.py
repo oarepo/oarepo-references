@@ -9,6 +9,7 @@
 
 from __future__ import absolute_import, print_function
 
+from blinker import Namespace
 from invenio_db import db
 from invenio_records.errors import MissingModelError
 
@@ -16,6 +17,22 @@ from flask_taxonomies.marshmallow import TaxonomySchemaV1
 from oarepo_references.models import RecordReference
 from oarepo_references.proxies import current_oarepo_references
 from oarepo_references.utils import keys_in_dict, transform_dicts_in_data
+
+_signals = Namespace()
+
+after_reference_update = _signals.signal('after-reference-update')
+"""Signal sent after a reference is updated.
+
+When implementing the event listener, the referencing record ids
+can retrieved from `kwarg['references']`, the referenced object
+can be retrieved from `sender`, the referenced record can be retrieved
+from `kwarg['record']`.
+
+.. note::
+
+   Do not perform any modification to the referenced object here:
+   they will be not persisted.
+"""
 
 
 def convert_taxonomy_refs(in_data):
@@ -27,6 +44,7 @@ def convert_taxonomy_refs(in_data):
         pass
 
     return in_data
+
 
 def convert_record_refs(sender, record, *args, **kwargs):
     transform_dicts_in_data(record, convert_taxonomy_refs)
@@ -46,6 +64,7 @@ def create_references_record(sender, record, *args, **kwargs):
 
 def update_references_record(sender, record, *args, **kwargs):
     current_oarepo_references.update_references_from_record(record)
+    current_oarepo_references.reindex_referencing_records(record=record)
 
 
 def delete_references_record(sender, record, *args, **kwargs):
