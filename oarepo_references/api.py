@@ -16,6 +16,7 @@ from invenio_records.models import Timestamp
 from invenio_search import current_search_client
 
 from oarepo_references.models import RecordReference
+from oarepo_references.signals import after_reference_update
 from oarepo_references.utils import keys_in_dict
 
 
@@ -44,15 +45,30 @@ class RecordReferenceAPI(object):
             return query.all()
 
     @classmethod
-    def reindex_referencing_records(cls, reference):
-        refs = cls.get_records(reference)
-        records = Record.get_records([r.record_uuid for r in refs])
-        recids = [r.id for r in records]
+    def reindex_referencing_records(cls, ref=None, record=None):
+        if not (ref or record):
+            raise AttributeError('Reference link or record must be provided')
 
-        RecordIndexer().bulk_index(recids)
-        RecordIndexer(version_type=cls.indexer_version_type).process_bulk_queue(
+        recids = []
+        sender = None
+        if ref:
+            refs = cls.get_records(ref)
+            records = Record.get_records([r.record_uuid for r in refs])
+            recids = [r.id for r in records]
+            sender = ref
+
+        if record:
+            # TODO: how to find referencing records given a base record instance
+            recids.append(record.id)
+            sender = record
+
+        indexed = after_reference_update.send(sender, references=recids, record=record)
+        print('reference_update_reindex_handled', indexed)
+        if not any([res[1] for res in indexed]):
+            RecordIndexer().bulk_index(recids)
+            RecordIndexer(version_type=cls.indexer_version_type).process_bulk_queue(
             es_bulk_kwargs={'raise_on_error': True})
-        current_search_client.indices.flush()
+            current_search_client.indices.flush()
 
     @classmethod
     def update_references_from_record(cls, record):
