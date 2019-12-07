@@ -17,7 +17,7 @@ from invenio_search import current_search_client
 
 from oarepo_references.models import RecordReference
 from oarepo_references.signals import after_reference_update
-from oarepo_references.utils import keys_in_dict
+from oarepo_references.utils import keys_in_dict, get_reference_uuid
 
 
 class RecordReferenceAPI(object):
@@ -74,7 +74,8 @@ class RecordReferenceAPI(object):
                     db.session.delete(rr)
             for ref in rec_refs:
                 if ref not in db_refs:
-                    rr = RecordReference(record_uuid=record.model.id, reference=ref)
+                    ref_uuid = get_reference_uuid(ref)
+                    rr = RecordReference(record_uuid=record.model.id, reference=ref, reference_uuid=ref_uuid)
                     db.session.add(rr)
 
         db.session.commit()

@@ -17,7 +17,7 @@ from invenio_records.errors import MissingModelError
 from flask_taxonomies.marshmallow import TaxonomySchemaV1
 from oarepo_references.models import RecordReference
 from oarepo_references.proxies import current_oarepo_references
-from oarepo_references.utils import keys_in_dict, transform_dicts_in_data
+from oarepo_references.utils import keys_in_dict, transform_dicts_in_data, get_reference_uuid
 
 _signals = Namespace()
 
@@ -55,7 +55,8 @@ def create_references_record(sender, record, *args, **kwargs):
     try:
         refs = keys_in_dict(record)
         for ref in refs:
-            rr = RecordReference(record_uuid=record.model.id, reference=ref)
+            ref_uuid = get_reference_uuid(ref)
+            rr = RecordReference(record_uuid=record.model.id, reference=ref, reference_uuid=ref_uuid)
             # TODO: check for existence of this pair first
             db.session.add(rr)
             db.session.commit()

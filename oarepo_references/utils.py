@@ -3,6 +3,12 @@
 
 from __future__ import absolute_import, print_function
 
+import re
+import traceback
+from urllib.parse import urlsplit
+
+from flask import current_app
+
 
 def transform_dicts_in_data(data, func):
     """
@@ -12,7 +18,7 @@ def transform_dicts_in_data(data, func):
     if isinstance(data, list):
         data = {'_': data}
 
-    for key,value in data.items():
+    for key, value in data.items():
         if isinstance(value, dict):
             data[key] = transform_dicts_in_data(value, func)
         elif isinstance(value, list):
@@ -45,3 +51,21 @@ def keys_in_dict(data, key='$ref'):
                 if isinstance(d, dict) or isinstance(d, list):
                     for result in keys_in_dict(d, key):
                         yield result
+
+
+def get_reference_uuid(ref_url):
+    api_app = current_app.wsgi_app.mounts['/api']
+    parts = urlsplit(ref_url)
+    try:
+        matcher = api_app.url_map.bind(parts.netloc)
+        if not parts.path.startswith('/api'):
+            return None
+        loader, args = matcher.match(parts.path[4:])
+        if 'pid_value' not in args:
+            return None
+        pid = args['pid_value']
+        pid, record = pid.data
+        return pid.object_uuid
+    except:
+        traceback.print_exc()
+        return None

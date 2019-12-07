@@ -3,6 +3,7 @@ from flask.cli import with_appcontext
 from invenio_db import db
 from invenio_records import Record
 from invenio_records.models import RecordMetadata
+from oarepo_references.models import RecordReference
 
 from oarepo_references.proxies import current_oarepo_references
 from oarepo_references.utils import transform_dicts_in_data
@@ -18,11 +19,15 @@ def references():
 # References subcommands
 #
 @references.command('synchronize')
+@click.option('--clear/--no-clear', default=False)
 @with_appcontext
-def synchronize():
+def synchronize(clear):
     """Scan all records and update references table."""
     rms = [v for v, in db.session.query(RecordMetadata.id).all()]
     records = Record.get_records(rms)
+    if clear:
+        RecordReference.query.delete()
+
     for rec in records:
         click.echo('Updating reference records for record: {}'.format(rec.id))
         transform_dicts_in_data(rec, convert_taxonomy_refs)

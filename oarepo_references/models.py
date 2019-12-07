@@ -30,7 +30,7 @@ class RecordReference(db.Model, Timestamp):
 
     __table_args__ = (UniqueConstraint('record_uuid', 'reference', name='_record_reference_uc'),)
 
-    def __init__(self, record_uuid: uuid.UUID, reference: str):
+    def __init__(self, record_uuid: uuid.UUID, reference: str, reference_uuid: uuid.UUID):
         """Initialize record reference instance
 
         :param record_uuid: ID of an Invenio record
@@ -38,6 +38,7 @@ class RecordReference(db.Model, Timestamp):
         """
         self.record_uuid = record_uuid
         self.reference = reference
+        self.reference_uuid = reference_uuid
 
     id = db.Column(
         UUIDType,
@@ -59,6 +60,14 @@ class RecordReference(db.Model, Timestamp):
         nullable=False
     )
     """URI of the reference"""
+
+    reference_uuid = db.Column(
+        UUIDType,
+        index=True,
+        nullable=True
+    )
+    """Invenio Record UUID indentifier of the referenced object 
+    in case the object is an invenio record"""
 
     version_id = db.Column(db.Integer, nullable=False)
     """Used by SQLAlchemy for optimistic concurrency control."""
