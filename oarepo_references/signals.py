@@ -37,13 +37,11 @@ from `kwarg['record']`.
 
 
 def convert_taxonomy_refs(in_data):
-    try:
-        result = TaxonomySchemaV1().load(in_data)
-        if not result.errors:
-            return result.data
-    except ValueError:
-        pass
-
+    self_link = in_data.get('links', {}).get('self', None)
+    if self_link and 'slug' in in_data:
+        return {
+            '$ref': in_data['links']['self']
+        }
     return in_data
 
 
