@@ -54,7 +54,10 @@ def keys_in_dict(data, key='$ref'):
 
 
 def get_reference_uuid(ref_url):
-    api_app = current_app.wsgi_app.mounts['/api']
+    if hasattr(current_app.wsgi_app, 'mounts') and current_app.wsgi_app.mounts:
+        api_app = current_app.wsgi_app.mounts.get('/api', current_app)
+    else:
+        api_app = current_app
     parts = urlsplit(ref_url)
     try:
         matcher = api_app.url_map.bind(parts.netloc)
