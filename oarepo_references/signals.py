@@ -14,7 +14,6 @@ from flask import request
 from invenio_db import db
 from invenio_records.errors import MissingModelError
 
-from flask_taxonomies.marshmallow import TaxonomySchemaV1
 from oarepo_references.models import RecordReference
 from oarepo_references.proxies import current_oarepo_references
 from oarepo_references.utils import keys_in_dict, transform_dicts_in_data, get_reference_uuid
