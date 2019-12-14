@@ -61,9 +61,11 @@ def get_reference_uuid(ref_url):
     parts = urlsplit(ref_url)
     try:
         matcher = api_app.url_map.bind(parts.netloc)
-        if not parts.path.startswith('/api'):
-            return None
-        loader, args = matcher.match(parts.path[4:])
+        if parts.path.startswith('/api'):
+            loader, args = matcher.match(parts.path[4:])
+        else:
+            loader, args = matcher.match(parts.path)
+
         if 'pid_value' not in args:
             return None
         pid = args['pid_value']

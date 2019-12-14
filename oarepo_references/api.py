@@ -60,15 +60,15 @@ class RecordReferenceAPI(object):
 
     @classmethod
     def update_references_from_record(cls, record):
-        # Find all entries for record id
-        rrs = RecordReference.query.filter_by(record_uuid=record.model.id)
-        rec_refs = list(set(list(keys_in_dict(record))))
-        db_refs = list(set([r[0] for r in rrs.values('reference')]))
-
-        record.validate()
-
-        # Delete removed/add added references
         with db.session.begin_nested():
+            # Find all entries for record id
+            rrs = RecordReference.query.filter_by(record_uuid=record.model.id)
+            rec_refs = list(set(list(keys_in_dict(record))))
+            db_refs = list(set([r[0] for r in rrs.values('reference')]))
+
+            record.validate()
+
+            # Delete removed/add added references
             for rr in rrs.all():
                 if rr.reference not in rec_refs:
                     db.session.delete(rr)
@@ -77,8 +77,6 @@ class RecordReferenceAPI(object):
                     ref_uuid = get_reference_uuid(ref)
                     rr = RecordReference(record_uuid=record.model.id, reference=ref, reference_uuid=ref_uuid)
                     db.session.add(rr)
-
-        db.session.commit()
 
 
 __all__ = (
