@@ -23,9 +23,18 @@ exclude pytest.ini
 exclude *.yml
 exclude run-tests.sh
 exclude tests
+exclude *txt
+exclude docs
+exclude examples
+exclude tests
+exclude LICENSE
 include *.rst
 include .dockerignore
 include .editorconfig
 include .tx/config
 prune docs/_build
 recursive-include oarepo_references/translations *.po *.pot *.mo
+
+recursive-exclude docs * *.rst
+recursive-exclude examples *.*
+recursive-exclude tests *.*
