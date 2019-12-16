@@ -56,7 +56,8 @@ after_success:
 # check if release tag is the same as version.py tag
 before_deploy:
 - |-
-  SRCTAG=$(find . -name "version.py" | grep -v 'build' | xargs cat | grep '__version__' | sed 's/__version__//' | sed 's/=//g' | sed 's/"//g' | sed "s/'//g" | sed 's/[ \t\n]//g')
+  SRCTAG=$(find . -name "version.py" | grep -v 'build' | grep -v '.eggs' | xargs cat | grep '__version__' | sed 's/__version__//' | sed 's/=//g' | sed 's/"//g' | sed "s/'//g" | sed 's/[ \t\n]//g')
+  echo "Version string in sources is $SRCTAG, travis version is $TRAVIS_TAG"
   test $SRCTAG == $TRAVIS_TAG
 
 deploy:
