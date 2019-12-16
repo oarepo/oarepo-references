@@ -27,7 +27,7 @@ tests_require = [
     'pytest-invenio>=1.0.5',
     'invenio[{db},base,metadata,elasticsearch6,auth,tests]=={version}'.format(
         db=DATABASE, version=INVENIO_VERSION),
-    'flask-taxonomies'
+    'flask-taxonomies>=6.6.8'
 ]
 
 extras_require = {
