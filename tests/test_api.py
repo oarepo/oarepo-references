@@ -13,5 +13,23 @@ class TestOArepoReferencesAPI:
 
     def test_get_records(self, records):
         print(records)
-        records = list(current_oarepo_references.get_records())
-        assert len(records) == 3
+
+        recs = list(current_oarepo_references.get_records('ref1'))
+        assert len(recs) == 1
+
+        assert recs[0].record_uuid == records[0].model.id
+
+        recs = list(current_oarepo_references.get_records('ref2'))
+        assert len(recs) == 1
+
+        assert recs[0].record_uuid == records[1].model.id
+
+        recs = list(current_oarepo_references.get_records('ref3'))
+        assert len(recs) == 1
+
+        assert recs[0].record_uuid == records[2].model.id
+
+        recs = list(current_oarepo_references.get_records('ref4'))
+        assert len(recs) == 1
+
+        assert recs[0].record_uuid == records[2].model.id

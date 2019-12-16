@@ -54,7 +54,9 @@ def create_references_record(sender, record, *args, **kwargs):
         for ref in refs:
             ref_uuid = get_reference_uuid(ref)
             with db.session.begin_nested():
-                rr = RecordReference(record_uuid=record.model.id, reference=ref, reference_uuid=ref_uuid)
+                rr = RecordReference(record_uuid=record.model.id,
+                                     reference=ref,
+                                     reference_uuid=ref_uuid)
                 # TODO: check for existence of this pair first
                 db.session.add(rr)
     except KeyError:

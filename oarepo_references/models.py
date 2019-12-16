@@ -66,7 +66,7 @@ class RecordReference(db.Model, Timestamp):
         index=True,
         nullable=True
     )
-    """Invenio Record UUID indentifier of the referenced object 
+    """Invenio Record UUID indentifier of the referenced object
     in case the object is an invenio record"""
 
     version_id = db.Column(db.Integer, nullable=False)

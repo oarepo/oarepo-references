@@ -34,12 +34,12 @@ class RecordReferenceAPI(object):
         """
         with db.session.no_autoflush:
             if exact:
-                query = RecordReference.query\
-                    .filter(RecordReference.reference == reference)\
+                query = RecordReference.query \
+                    .filter(RecordReference.reference == reference) \
                     .distinct(RecordReference.record_uuid)
             else:
-                query = RecordReference.query\
-                    .filter(RecordReference.reference.startswith(reference))\
+                query = RecordReference.query \
+                    .filter(RecordReference.reference.startswith(reference)) \
                     .distinct(RecordReference.record_uuid)
 
             return query.all()
@@ -55,7 +55,7 @@ class RecordReferenceAPI(object):
         if not any([res[1] for res in indexed]):
             RecordIndexer().bulk_index(recids)
             RecordIndexer(version_type=cls.indexer_version_type).process_bulk_queue(
-            es_bulk_kwargs={'raise_on_error': True})
+                es_bulk_kwargs={'raise_on_error': True})
             current_search_client.indices.flush()
 
     @classmethod
@@ -75,7 +75,8 @@ class RecordReferenceAPI(object):
             for ref in rec_refs:
                 if ref not in db_refs:
                     ref_uuid = get_reference_uuid(ref)
-                    rr = RecordReference(record_uuid=record.model.id, reference=ref, reference_uuid=ref_uuid)
+                    rr = RecordReference(record_uuid=record.model.id, reference=ref,
+                                         reference_uuid=ref_uuid)
                     db.session.add(rr)
 
 

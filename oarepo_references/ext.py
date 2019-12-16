@@ -8,11 +8,15 @@
 """OArepo module for tracking and updating references in Invenio records"""
 
 from __future__ import absolute_import, print_function
-from invenio_records.signals import after_record_insert, after_record_update, after_record_delete, before_record_update
+from invenio_records.signals import (
+    after_record_insert, after_record_update, after_record_delete, before_record_update
+)
 
 from oarepo_references.api import RecordReferenceAPI
-from oarepo_references.signals import create_references_record, update_references_record, delete_references_record, \
+from oarepo_references.signals import (
+    create_references_record, update_references_record, delete_references_record,
     convert_record_refs
+)
 
 from . import config
 
