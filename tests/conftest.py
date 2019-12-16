@@ -21,9 +21,9 @@ from flask_babelex import Babel
 from invenio_db import InvenioDB
 from invenio_db import db as _db
 from invenio_jsonschemas import InvenioJSONSchemas
-from invenio_records import Record, InvenioRecords
+from invenio_records import InvenioRecords, Record
 from invenio_search import InvenioSearch
-from sqlalchemy_utils import database_exists, create_database
+from sqlalchemy_utils import create_database, database_exists
 
 from oarepo_references import OARepoReferences
 
@@ -83,6 +83,7 @@ def db(app):
 
 @pytest.fixture
 def records(db):
+    """Create sample records with references."""
     return [
         Record.create({'$ref': 'ref1'}),
         Record.create({'$ref': 'ref2'}),

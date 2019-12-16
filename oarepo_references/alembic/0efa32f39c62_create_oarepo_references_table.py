@@ -5,11 +5,10 @@
 # Invenio is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
 
-"""Create oarepo_references table"""
+"""Create oarepo_references table."""
+import sqlalchemy as sa
 import sqlalchemy_utils
 from alembic import op
-import sqlalchemy as sa
-
 
 # revision identifiers, used by Alembic.
 revision = '0efa32f39c62'

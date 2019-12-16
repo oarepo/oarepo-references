@@ -12,7 +12,8 @@ from flask import current_app
 
 def transform_dicts_in_data(data, func):
     """
-    Calls a function on all dicts contained in data input
+    Calls a function on all dicts contained in data input.
+
     :param data: data dict or list
     """
     if isinstance(data, list):
@@ -33,7 +34,8 @@ def transform_dicts_in_data(data, func):
 
 def keys_in_dict(data, key='$ref'):
     """
-    Returns an array of all key occurences in a given dict
+    Returns an array of all key occurences in a given dict.
+
     :param record: data dict or list
     :return: Array[object] list of values of all occurences of a given key
     """
@@ -54,6 +56,7 @@ def keys_in_dict(data, key='$ref'):
 
 
 def get_reference_uuid(ref_url):
+    """Returns a record uuid of the given reference or None if the reference is not a record."""
     if hasattr(current_app.wsgi_app, 'mounts') and current_app.wsgi_app.mounts:
         api_app = current_app.wsgi_app.mounts.get('/api', current_app)
     else:

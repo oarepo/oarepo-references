@@ -7,10 +7,9 @@
 
 """Added target uuid."""
 
+import sqlalchemy as sa
 import sqlalchemy_utils
 from alembic import op
-import sqlalchemy as sa
-
 
 # revision identifiers, used by Alembic.
 revision = '41961e82e345'

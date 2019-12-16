@@ -1,18 +1,28 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright (C) 2019 Miroslav Bauer, CESNET.
+#
+# oarepo-references is free software; you can redistribute it and/or modify
+# it under the terms of the MIT License; see LICENSE file for more details.
+
+"""OArepo module for tracking and updating references in Invenio records."""
+
 import click
 from flask.cli import with_appcontext
 from invenio_db import db
 from invenio_records import Record
 from invenio_records.models import RecordMetadata
-from oarepo_references.models import RecordReference
 
+from oarepo_references.models import RecordReference
 from oarepo_references.proxies import current_oarepo_references
 from oarepo_references.utils import transform_dicts_in_data
-from .signals import update_references_record, convert_taxonomy_refs
+
+from .signals import convert_taxonomy_refs, update_references_record
 
 
 @click.group()
 def references():
-    """OArepo references."""
+    """References support for OArepo."""
 
 
 #

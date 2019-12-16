@@ -5,7 +5,7 @@
 # oarepo-references is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
 
-"""OArepo module for tracking and updating references in Invenio records"""
+"""OArepo module for tracking and updating references in Invenio records."""
 
 from __future__ import absolute_import, print_function
 
@@ -18,11 +18,13 @@ from sqlalchemy_utils.types import UUIDType
 
 
 class RecordReference(db.Model, Timestamp):
-    """Represent a record references mapping entry.
+    """
+    Represent a record references mapping entry.
 
     The RecordReference object contains a ``created`` and  a ``updated``
     timestamps that are automatically updated.
     """
+
     # Enables SQLAlchemy-Continuum versioning
     __versioned__ = {}
 
@@ -31,7 +33,7 @@ class RecordReference(db.Model, Timestamp):
     __table_args__ = (UniqueConstraint('record_uuid', 'reference', name='_record_reference_uc'),)
 
     def __init__(self, record_uuid: uuid.UUID, reference: str, reference_uuid: uuid.UUID):
-        """Initialize record reference instance
+        """Initialize record reference instance.
 
         :param record_uuid: ID of an Invenio record
         :param reference: value of $ref reference

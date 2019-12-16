@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """Model unit tests."""
 import pytest
-
 from flask_taxonomies.models import MovePosition, TaxonomyError
 from flask_taxonomies.proxies import current_flask_taxonomies
+
 from oarepo_references.proxies import current_oarepo_references
 
 

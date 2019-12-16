@@ -5,7 +5,7 @@
 # oarepo-references is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
 
-"""OArepo module for tracking and updating references in Invenio records"""
+"""OArepo module for tracking and updating references in Invenio records."""
 
 from __future__ import absolute_import, print_function
 
@@ -17,12 +17,12 @@ from invenio_search import current_search_client
 
 from oarepo_references.models import RecordReference
 from oarepo_references.signals import after_reference_update
-from oarepo_references.utils import keys_in_dict, get_reference_uuid
+from oarepo_references.utils import get_reference_uuid, keys_in_dict
 
 
 class RecordReferenceAPI(object):
-    """Represent a record reference.
-    """
+    """Represent a record reference."""
+
     indexer_version_type = None
 
     @classmethod
@@ -46,6 +46,12 @@ class RecordReferenceAPI(object):
 
     @classmethod
     def reindex_referencing_records(cls, ref, ref_obj=None):
+        """
+        Reindex all record that reference given ref.
+
+        :param ref:         url to be checked
+        :param ref_obj:     an object (record etc.) of the reference
+        """
         refs = cls.get_records(ref)
         records = Record.get_records([r.record_uuid for r in refs])
         recids = [r.id for r in records]
@@ -60,6 +66,11 @@ class RecordReferenceAPI(object):
 
     @classmethod
     def update_references_from_record(cls, record):
+        """
+        Gathers all references from a record and updates internal RecordReference table.
+
+        :param record       invenio record
+        """
         with db.session.begin_nested():
             # Find all entries for record id
             rrs = RecordReference.query.filter_by(record_uuid=record.model.id)
