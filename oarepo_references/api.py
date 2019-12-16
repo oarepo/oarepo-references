@@ -30,7 +30,7 @@ class RecordReferenceAPI(object):
         """Retrieve multiple records by reference.
 
         :param reference: Reference URI
-        :returns: A list of :class:`RecordReference` instances containing the reference.
+        :returns: A list of :class:`oarepo_references.models.RecordReference` instances containing the reference.
         """
         with db.session.no_autoflush:
             if exact:

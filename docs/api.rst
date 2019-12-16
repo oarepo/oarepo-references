@@ -12,8 +12,8 @@ API Docs
 .. automodule:: oarepo_references.ext
    :members:
 
-Views
------
+.. automodule:: oarepo_references.api
+   :members:
 
-.. automodule:: oarepo_references.views
+.. automodule:: oarepo_references.models
    :members:
