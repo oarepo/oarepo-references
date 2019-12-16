@@ -47,14 +47,19 @@ script:
 after_success:
   - coveralls
 
-#deploy:
-#  provider: pypi
-#  user: TODO: PYPIUSERNAME
-#  password:
-#    secure: TODO: PYPISECUREHASH
-#  distributions: "compile_catalog sdist bdist_wheel"
-#  on:
-#    tags: true
-#    python: "3.6"
-#    repo: cis/cis-theses-repository
-#    condition: $DEPLOY = true
+# check if release tag is the same as version.py tag
+before_deploy:
+- |-
+  SRCTAG=$(find . -name "version.py" | grep -v 'build' | xargs cat | grep '__version__' | sed 's/__version__//' | sed 's/=//g' | sed 's/"//g' | sed "s/'//g" | sed 's/[ \t\n]//g')
+  test $SRCTAG == $TRAVIS_TAG
+
+deploy:
+  provider: pypi
+  user: "__token__"
+  password:
+    secure: "dyU00BHuC6VZ+2rUEOQy8I4ULZa9TcTUOLyyDm/VAz8vSC5TfEzifMh85+35fGa1tkM8mTstzfsF+veazChWxd16acfdrYaaqLIagc1Wofjp8ndCWSl6lrmp30coaoLBEVGi3/hSEpEAcjzuyq7gljIPLFXAvIsLVPQ01NvIIzdcV5gUlH9W4MqUoohiYbK6XJeBFqay6YW4NVH/yyH8ifrZMmbWDmoFkko+axVXZUO5h73ui9VVY2fMPIZKdXcD0hpYf0n7nP/Nxrtiy5HSkVogJca27k2oL+X0Y87gGxkHesTzuyJp1CoWaR3wSAIp8f7uJpUUfMZd+hlLG/K/8zef/lbh/lrptNWDZAhJTSK1CKpkKiej0ZiTrMP4zzKjLd+vC5jt9DcnHDqr/XK1BQgBqC3xMf+wqY9192ZLS+jjbt4pjamrLqb/giqU6nBhG/hEbVDLbDJqtTFsH474BuA9Gwbpk/0T/DLtv3CRXahUrp6qgWiyKSenu1oeAuOBJXJGvw4behwi8ZH5ONdVAb2+HYuH0Tcyb8TWDHRGFC0fCCNdGpE9bw1lIHRhQUX1C1GwUwwdjmz1Wm8AGdsk7tStksW36iyw4dB7ZOCHezO1GAE6EIyPvDEai0mkCMhgHXTOSRjqXGnbbfiog1NcVOFSuIeDVCo/LjytRsN1FZs="
+  on:
+    tags: true
+    branch: master
+  distributions: "sdist bdist_wheel"
+  skip_existing: true
