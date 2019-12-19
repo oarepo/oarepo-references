@@ -57,6 +57,9 @@ def keys_in_dict(data, key='$ref'):
 
 def get_reference_uuid(ref_url):
     """Returns a record uuid of the given reference or None if the reference is not a record."""
+    if not isinstance(ref_url, str):
+        return None
+
     if hasattr(current_app.wsgi_app, 'mounts') and current_app.wsgi_app.mounts:
         api_app = current_app.wsgi_app.mounts.get('/api', current_app)
     else:
