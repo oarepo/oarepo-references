@@ -17,20 +17,21 @@ history = open('CHANGES.rst').read()
 OAREPO_VERSION = os.environ.get('OAREPO_VERSION', '3.1.1')
 
 tests_require = [
-    'oarepo[tests]~={version}'.format(version=OAREPO_VERSION),
-    'flask-taxonomies>=6.6.8'
 ]
 
 extras_require = {
     'docs': [
         'Sphinx>=1.5.1',
     ],
-    'tests': tests_require,
+    'tests': [
+        'oarepo[tests]~={version}'.format(version=OAREPO_VERSION),
+        'flask-taxonomies>=6.6.8'
+    ],
+    'tests-es7': [
+        'oarepo[tests-es7]~={version}'.format(version=OAREPO_VERSION),
+        'flask-taxonomies>=6.6.8'
+    ],
 }
-
-extras_require['all'] = []
-for reqs in extras_require.values():
-    extras_require['all'].extend(reqs)
 
 setup_requires = [
     'pytest-runner>=3.0.0,<5',
