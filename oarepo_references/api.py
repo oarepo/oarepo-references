@@ -75,7 +75,7 @@ class RecordReferenceAPI(object):
         with db.session.begin_nested():
             # Find all entries for record id
             rrs = RecordReference.query.filter_by(record_uuid=record.model.id)
-            rec_refs = list(set(list(keys_in_dict(record))))
+            rec_refs = list(set(list(keys_in_dict(record, required_types=(str,)))))
             db_refs = list(set([r[0] for r in rrs.values('reference')]))
 
             record.validate()

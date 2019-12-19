@@ -32,7 +32,7 @@ def transform_dicts_in_data(data, func):
         return func(data)
 
 
-def keys_in_dict(data, key='$ref'):
+def keys_in_dict(data, key='$ref', required_types=None):
     """
     Returns an array of all key occurences in a given dict.
 
@@ -44,14 +44,15 @@ def keys_in_dict(data, key='$ref'):
 
     for k, v in data.items():
         if k == key:
-            yield v
+            if not required_types or isinstance(v, required_types):
+                yield v
         if isinstance(v, dict):
-            for result in keys_in_dict(v, key):
+            for result in keys_in_dict(v, key, required_types):
                 yield result
         elif isinstance(v, list):
             for d in v:
                 if isinstance(d, dict) or isinstance(d, list):
-                    for result in keys_in_dict(d, key):
+                    for result in keys_in_dict(d, key, required_types):
                         yield result
 
 
