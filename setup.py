@@ -14,19 +14,10 @@ from setuptools import find_packages, setup
 readme = open('README.rst').read()
 history = open('CHANGES.rst').read()
 
-DATABASE = "postgresql"
-INVENIO_VERSION = "3.1.1"
+OAREPO_VERSION = os.environ.get('OAREPO_VERSION', '3.1.1')
 
 tests_require = [
-    'check-manifest>=0.25',
-    'coverage>=4.0',
-    'isort>=4.3.3',
-    'pydocstyle>=2.0.0',
-    'pytest-cov>=2.5.1',
-    'pytest-pep8>=1.0.6',
-    'pytest-invenio>=1.0.5',
-    'invenio[{db},base,metadata,elasticsearch6,auth,tests]=={version}'.format(
-        db=DATABASE, version=INVENIO_VERSION),
+    'oarepo[tests]~={version}'.format(version=OAREPO_VERSION),
     'flask-taxonomies>=6.6.8'
 ]
 
@@ -42,16 +33,13 @@ for reqs in extras_require.values():
     extras_require['all'].extend(reqs)
 
 setup_requires = [
-    'Babel>=1.3',
     'pytest-runner>=3.0.0,<5',
 ]
 
 install_requires = [
-    'Flask-BabelEx>=0.9.3',
 ]
 
 packages = find_packages()
-
 
 # Get the version string. Cannot be done with import!
 g = {}
