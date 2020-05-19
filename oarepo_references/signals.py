@@ -10,7 +10,6 @@
 from __future__ import absolute_import, print_function
 
 from blinker import Namespace
-from flask import request
 from invenio_db import db
 from invenio_records.errors import MissingModelError
 
@@ -81,8 +80,7 @@ def update_references_record(sender, record, *args, **kwargs):
     if hasattr(record, 'canonical_url'):
         ref = record.canonical_url
     else:
-        # TODO: maybe drop just the `disable_cache` query param from full path?
-        ref = request.url[:-len(request.query_string)].rstrip('?')
+        raise AttributeError('missing canonical_url on record')
     current_oarepo_references.reindex_referencing_records(ref=ref, ref_obj=record)
 
 
