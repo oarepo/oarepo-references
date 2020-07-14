@@ -12,7 +12,6 @@ from __future__ import absolute_import, print_function
 from invenio_db import db
 from invenio_indexer.api import RecordIndexer
 from invenio_records import Record
-from invenio_records.models import Timestamp
 from invenio_search import current_search_client
 
 from oarepo_references.models import RecordReference

@@ -9,6 +9,18 @@ from urllib.parse import urlsplit
 
 from flask import current_app
 
+from oarepo_references.proxies import current_oarepo_references
+
+
+def run_task_on_referrers(reference, task):
+    """
+    Iterates over all referrers referring the given reference and
+    submits a celery task for each referrer.
+    """
+    refs = current_oarepo_references.get_records(reference)
+    for ref in refs:
+        task.delay(ref)
+
 
 def transform_dicts_in_data(data, func):
     """
