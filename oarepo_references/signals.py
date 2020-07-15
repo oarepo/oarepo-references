@@ -61,7 +61,7 @@ def convert_record_refs(sender, record, *args, **kwargs):
 def create_references_record(sender, record, *args, **kwargs):
     """A signal receiver that creates record references on record create."""
     try:
-        refs = keys_in_dict(record, required_types=(str,))
+        refs = keys_in_dict(record, required_type=str)
         for ref in refs:
             ref_uuid = get_reference_uuid(ref)
             with db.session.begin_nested():

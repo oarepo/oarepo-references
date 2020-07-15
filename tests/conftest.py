@@ -10,85 +10,89 @@
 See https://pytest-invenio.readthedocs.io/ for documentation on which test
 fixtures are available.
 """
-
-from __future__ import absolute_import, print_function
-
-import os
+import uuid
 
 import pytest
-from flask import Flask
-from flask_babelex import Babel
-from invenio_db import InvenioDB
-from invenio_db import db as _db
-from invenio_jsonschemas import InvenioJSONSchemas
-from invenio_records import InvenioRecords, Record
-from invenio_search import InvenioSearch
-from sqlalchemy_utils import create_database, database_exists
-
-from oarepo_references import OARepoReferences
+from flask import url_for
+from invenio_app.factory import create_api
+from invenio_pidstore.providers.recordid import RecordIdProvider
+from invenio_records import Record
 
 
-@pytest.fixture(scope='module')
-def celery_config():
-    """Override pytest-invenio fixture.
-
-    TODO: Remove this fixture if you add Celery support.
-    """
-    return {}
+@pytest.fixture(scope="module")
+def create_app():
+    """Return API app."""
+    return create_api
 
 
-@pytest.fixture(scope='module')
-def create_app(instance_path):
-    """Application factory fixture."""
-
-    def factory(**config):
-        app = Flask('testapp', instance_path=instance_path)
-        app.config.update(
-            TESTING=True,
-            JSON_AS_ASCII=True,
-            SQLALCHEMY_TRACK_MODIFICATIONS=True,
-            SQLALCHEMY_DATABASE_URI=os.environ.get(
-                'SQLALCHEMY_DATABASE_URI',
-                'sqlite:///:memory:'),
-            SERVER_NAME='localhost',
-            SECURITY_PASSWORD_SALT='TEST_SECURITY_PASSWORD_SALT',
-            SECRET_KEY='TEST_SECRET_KEY',
+@pytest.fixture(scope="module")
+def app_config(app_config):
+    """Flask application fixture."""
+    app_config['SERVER_NAME'] = 'localhost'
+    app_config['PIDSTORE_RECID_FIELD'] = 'pid'
+    app_config['RECORDS_REST_ENDPOINTS'] = dict(
+        recid=dict(
+            pid_type='recid',
+            pid_minter='recid',
+            pid_fetcher='recid',
+            record_serializers={
+                'application/json': ('invenio_records_rest.serializers'
+                                     ':json_v1_response'),
+            },
+            search_serializers={
+                'application/json': ('invenio_records_rest.serializers'
+                                     ':json_v1_search'),
+            },
+            list_route='/records/',
+            item_route='/records/<pid(recid):pid_value>'
         )
-        Babel(app)
-        InvenioDB(app)
-        InvenioJSONSchemas(app)
-        InvenioRecords(app)
-        InvenioSearch(app)
-        OARepoReferences(app)
-        return app
-
-    return factory
+    )
+    return app_config
 
 
 @pytest.fixture
-def db(app):
-    """Create database for the tests."""
-    with app.app_context():
-        if not database_exists(str(_db.engine.url))\
-           and app.config['SQLALCHEMY_DATABASE_URI'] != 'sqlite://':
-            create_database(_db.engine.url)
-        _db.create_all()
+def referenced_records(db):
+    """Create a list of records to be referenced by other records."""
+    rrdata = [{'title': 'a'}, {'title': 'b'}]
+    referenced_records = []
 
-    yield _db
+    for rr in rrdata:
+        record_uuid = uuid.uuid4()
+        provider = RecordIdProvider.create(
+            object_type='rec',
+            object_uuid=record_uuid,
+        )
+        rr["pid"] = provider.pid.pid_value
+        referenced_records.append(Record.create(rr, id_=record_uuid))
 
-    # Explicitly close DB connection
-    _db.session.close()
-    _db.drop_all()
+    db.session.commit()
+    return referenced_records
 
 
 @pytest.fixture
-def records(db):
-    """Create sample records with references."""
-    return [
-        Record.create({'$ref': 'ref1'}),
-        Record.create({'$ref': 'ref2'}),
-        Record.create({'reflist': [
-            {'$ref': 'ref3'},
-            {'$ref': 'ref4'}
+def referencing_records(db, referenced_records):
+    """Create sample records with references to others."""
+    def _get_ref_url(pid):
+        return url_for('invenio_records_rest.recid_item',
+                       pid_value=pid, _external=True)
+
+    referencing_records = [
+        Record.create({
+            'title': 'c',
+            '$ref': _get_ref_url(referenced_records[0]['pid'])
+        }),
+        Record.create({
+            'title': 'd',
+            '$ref': _get_ref_url(referenced_records[1]['pid'])
+        }),
+        Record.create({'title': 'e', 'reflist': [
+            {'$ref': _get_ref_url(referenced_records[1]['pid'])},
+            {'$ref': _get_ref_url(referenced_records[0]['pid'])}
+        ]}),
+        Record.create({'title': 'f', 'reflist': [
+            {'title': 'f', '$ref': _get_ref_url(referenced_records[0]['pid'])},
         ]})
     ]
+    db.session.commit()
+
+    return referencing_records

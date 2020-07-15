@@ -14,7 +14,7 @@ from setuptools import find_packages, setup
 readme = open('README.rst').read()
 history = open('CHANGES.rst').read()
 
-OAREPO_VERSION = os.environ.get('OAREPO_VERSION', '3.1.1')
+OAREPO_VERSION = os.environ.get('OAREPO_VERSION', '3.2.1')
 
 tests_require = [
 ]
@@ -28,8 +28,7 @@ extras_require = {
         'flask-taxonomies>=6.6.8'
     ],
     'tests-es7': [
-        'oarepo[tests-es7]~={version}'.format(version=OAREPO_VERSION),
-        'flask-taxonomies>=6.6.8'
+        'oarepo[tests-es7,taxonomies]~={version}'.format(version=OAREPO_VERSION)
     ],
 }
 

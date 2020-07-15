@@ -26,7 +26,7 @@ class RecordReferenceAPI(object):
 
     @classmethod
     def get_records(cls, reference, exact=False):
-        """Retrieve multiple records by reference.
+        """Retrieve multiple reference records by reference.
 
         :param reference: Reference URI
         :returns: A list of :class:`oarepo_references.models.RecordReference`
@@ -47,9 +47,9 @@ class RecordReferenceAPI(object):
     @classmethod
     def reindex_referencing_records(cls, ref, ref_obj=None):
         """
-        Reindex all record that reference given ref.
+        Reindex all records that reference given object or string reference.
 
-        :param ref:         url to be checked
+        :param ref:         string reference to be checked
         :param ref_obj:     an object (record etc.) of the reference
         """
         refs = cls.get_records(ref)
@@ -57,7 +57,6 @@ class RecordReferenceAPI(object):
         recids = [r.id for r in records]
         sender = ref_obj if ref_obj else ref
         indexed = after_reference_update.send(sender, references=recids, ref_obj=ref_obj)
-        print('reference_update_reindex_handled', indexed)
         if not any([res[1] for res in indexed]):
             RecordIndexer().bulk_index(recids)
             RecordIndexer(version_type=cls.indexer_version_type).process_bulk_queue(
@@ -69,12 +68,12 @@ class RecordReferenceAPI(object):
         """
         Gathers all references from a record and updates internal RecordReference table.
 
-        :param record       invenio record
+        :param record invenio record
         """
         with db.session.begin_nested():
             # Find all entries for record id
             rrs = RecordReference.query.filter_by(record_uuid=record.model.id)
-            rec_refs = list(set(list(keys_in_dict(record, required_types=(str,)))))
+            rec_refs = list(set(list(keys_in_dict(record, required_type=str))))
             db_refs = list(set([r[0] for r in rrs.values('reference')]))
 
             record.validate()
