@@ -17,8 +17,6 @@ from oarepo_references.signals import convert_record_refs, \
     create_references_record, delete_references_record, \
     update_references_record
 
-from . import config
-
 
 class _RecordReferencesState(object):
     """State for record references."""
@@ -48,7 +46,6 @@ class OARepoReferences(object):
 
     def init_app(self, app):
         """Flask application initialization."""
-        self.init_config(app)
 
         # Connect invenio-records signal handlers
         after_record_insert.connect(create_references_record)
@@ -59,9 +56,3 @@ class OARepoReferences(object):
         state = _RecordReferencesState(app)
         app.extensions['oarepo-references'] = state
         return state
-
-    def init_config(self, app):
-        """Initialize configuration."""
-        for k in dir(config):
-            if k.startswith('OAREPO_REFERENCES_'):
-                app.config.setdefault(k, getattr(config, k))

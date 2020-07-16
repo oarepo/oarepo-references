@@ -5,10 +5,8 @@
 # oarepo-references is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
 
-[pytest]
-addopts = --pep8 --doctest-glob="*.rst" --doctest-modules
-testpaths = docs tests oarepo_references
-pep8maxlinelength = 99
-pep8ignore =
-  docs/conf.py ALL
-  oarepo_references/alembic/*py ALL
+"""Pytest tests module.
+
+See https://pytest-invenio.readthedocs.io/ for documentation on which test
+fixtures are available.
+"""

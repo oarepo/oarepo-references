@@ -10,8 +10,11 @@
 from __future__ import absolute_import, print_function
 
 from flask import Flask
+from invenio_records.signals import after_record_insert, before_record_update, after_record_update
 
 from oarepo_references import OARepoReferences
+from oarepo_references.signals import create_references_record, convert_record_refs,\
+    update_references_record, delete_references_record
 
 
 def test_version():
@@ -31,3 +34,11 @@ def test_init():
     assert 'oarepo-references' not in app.extensions
     ext.init_app(app)
     assert 'oarepo-references' in app.extensions
+
+
+def test_signals():
+    """Test if the signals are properly registered."""
+    assert after_record_insert.has_receivers_for(create_references_record)
+    assert before_record_update.has_receivers_for(convert_record_refs)
+    assert after_record_update.has_receivers_for(update_references_record)
+    assert after_record_update.has_receivers_for(delete_references_record)
