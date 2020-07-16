@@ -8,6 +8,7 @@
 """Test API class methods."""
 import pytest
 
+from oarepo_references.api import RecordReferenceAPI
 from oarepo_references.proxies import current_oarepo_references
 from oarepo_references.signals import after_reference_update
 
@@ -16,28 +17,35 @@ from oarepo_references.signals import after_reference_update
 class TestOArepoReferencesAPI:
     """Taxonomy model tests."""
 
-    def test_get_records(self, referencing_records):
-        recs = list(current_oarepo_references.get_records('http://localhost/records/1'))
+    def test_get_records(self, referencing_records, references_api):
+        """Test that we can get reference records referencing a reference."""
+        recs = list(references_api.get_records('http://localhost/records/1'))
         assert len(recs) == 3
         assert recs[0].record_uuid == referencing_records[0].model.id
 
-        recs = list(current_oarepo_references.get_records('http://localhost/records/2'))
+        recs = list(references_api.get_records('http://localhost/records/2'))
         assert len(recs) == 2
         assert recs[0].record_uuid == referencing_records[1].model.id
 
-        recs = list(current_oarepo_references.get_records('http://localhost/records/3'))
+        recs = list(references_api.get_records('http://localhost/records/3'))
         assert len(recs) == 0
 
-    def test_reindex_referencing_records(self, referencing_records):
-        pass
-        # def _test_handler(record):
-        #     def _handler(_, references, ref_obj):
-        #         assert references == [record.model.id]
-        #         assert ref_obj is record
-        #
-        #     return _handler
-        #
-        # handle = _test_handler(records[0])
-        # after_reference_update.connect(handle)
-        #
-        # current_oarepo_references.reindex_referencing_records('ref1', records[0])
+        recs = list(references_api.get_records('http://localhost/records/'))
+        assert len(recs) == 5
+
+        recs = list(references_api.get_records('http://localhost/records/', exact=True))
+        assert len(recs) == 0
+
+    def test_reindex_referencing_records(self, referenced_records, references_api):
+        def _test_handler(record):
+            def _handler(_, references, ref_obj):
+                assert references == [record.model.id]
+                assert ref_obj is record
+
+            return _handler
+
+        handle = _test_handler(referenced_records[0])
+        after_reference_update.connect(handle)
+
+        references_api.reindex_referencing_records('http://localhost/records/1',
+                                                   referenced_records[0])

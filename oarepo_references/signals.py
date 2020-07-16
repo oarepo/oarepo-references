@@ -35,27 +35,28 @@ from `kwarg['record']`.
 """
 
 
-def convert_taxonomy_refs(in_data):
+def convert_to_ref(in_data, key='$ref'):
     """
     Replaces self links with $ref.
 
     This function checks if the in_data contains links/self
-    and if found replaces the element with $ref.
+    and if found replaces the in_data with $ref.
 
+    :param key: key to be used as returned ref
     :param in_data: the incoming data
-    :return:    either the incoming data or element with $ref
+    :return: either the incoming data or element with $ref
     """
     self_link = in_data.get('links', {}).get('self', None)
     if self_link and 'slug' in in_data:
         return {
-            '$ref': in_data['links']['self']
+            key: in_data['links']['self']
         }
     return in_data
 
 
 def convert_record_refs(sender, record, *args, **kwargs):
     """A signal receiver to transform self links to $ref."""
-    transform_dicts_in_data(record, convert_taxonomy_refs)
+    return transform_dicts_in_data(record, convert_to_ref)
 
 
 def create_references_record(sender, record, *args, **kwargs):
@@ -65,12 +66,19 @@ def create_references_record(sender, record, *args, **kwargs):
         for ref in refs:
             ref_uuid = get_reference_uuid(ref)
             with db.session.begin_nested():
-                rr = RecordReference(record_uuid=record.model.id,
-                                     reference=ref,
-                                     reference_uuid=ref_uuid)
-                # TODO: check for existence of this pair first
-                db.session.add(rr)
-    except KeyError:
+                exists = db.session.query(RecordReference.query
+                                          .filter(RecordReference.record_uuid == record.model.id)
+                                          .filter(RecordReference.reference == ref)
+                                          .exists()).scalar()
+                if exists:
+                    if kwargs.get('throw'):
+                        raise FileExistsError
+                else:
+                    rr = RecordReference(record_uuid=record.model.id,
+                                         reference=ref,
+                                         reference_uuid=ref_uuid)
+                    db.session.add(rr)
+    except (KeyError, AttributeError):
         raise MissingModelError()
 
 

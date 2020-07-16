@@ -18,11 +18,18 @@ from invenio_app.factory import create_api
 from invenio_pidstore.providers.recordid import RecordIdProvider
 from invenio_records import Record
 
+from oarepo_references.api import RecordReferenceAPI
+
 
 @pytest.fixture(scope="module")
 def create_app():
     """Return API app."""
     return create_api
+
+
+@pytest.fixture(scope="module")
+def references_api():
+    return RecordReferenceAPI()
 
 
 @pytest.fixture(scope="module")
@@ -72,6 +79,7 @@ def referenced_records(db):
 @pytest.fixture
 def referencing_records(db, referenced_records):
     """Create sample records with references to others."""
+
     def _get_ref_url(pid):
         return url_for('invenio_records_rest.recid_item',
                        pid_value=pid, _external=True)
@@ -93,6 +101,31 @@ def referencing_records(db, referenced_records):
             {'title': 'f', '$ref': _get_ref_url(referenced_records[0]['pid'])},
         ]})
     ]
+    db.session.commit()
+
+    return referencing_records
+
+
+@pytest.fixture
+def test_record_data():
+    return {
+        'pid': 999,
+        'title': 'rec1',
+        'taxo1': {
+            'links': {
+                'self': 'http://localhost/api/taxonomies/requestors/a/b/',
+            },
+            'slug': 'b'
+        },
+        'sub': {
+            'taxo2': {
+                'links': {
+                    'self': 'http://localhost/api/taxonomies/requestors/a/c/',
+                },
+                'slug': 'c'
+            }
+        }
+    }
     db.session.commit()
 
     return referencing_records

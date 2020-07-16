@@ -24,3 +24,15 @@ services:
     ports:
       - "127.0.0.1:9200:9200"
       - "127.0.0.1:9300:9300"
+  mq:
+    image: rabbitmq:3-management
+    restart: "always"
+    ports:
+      - "127.0.0.1:15672:15672"
+      - "127.0.0.1:5672:5672"
+  cache:
+    image: redis
+    restart: "always"
+    read_only: true
+    ports:
+      - "127.0.0.1:6379:6379"
