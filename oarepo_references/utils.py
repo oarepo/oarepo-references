@@ -5,6 +5,7 @@ from __future__ import absolute_import, print_function
 
 from urllib.parse import urlsplit
 
+from celery import chain, signature
 from flask import current_app
 from invenio_records import Record
 from invenio_records_rest.errors import PIDRESTException
@@ -17,11 +18,23 @@ def run_task_on_referrers(reference, task):
     """
     Iterates over all referrers referring the given reference and
     submits a celery task for each referrer.
+
+    :param reference: reference for which to run the tasks on referrers
+    :param task: a celery task signature
     """
     refs = current_oarepo_references.get_records(reference)
+
+    task_list = []
     for ref in refs:
         rec = Record.get_record(id_=ref.record_uuid)
-        task.delay(rec)
+        # Add the referencing record to the task signature
+        task_list.append(task.clone(kwargs={'record': rec}))
+
+    job = chain(
+        *task_list
+    )
+    job_result = job.apply_async()
+    return job_result
 
 
 def transform_dicts_in_data(data, func):

@@ -20,10 +20,10 @@ def test_run_task_on_referrers(referencing_records, referenced_records):
     tasklist = []
 
     @shared_task
-    def _test_task(referrer):
-        tasklist.append(referrer)
+    def _test_task(*args, **kwargs):
+        tasklist.append(kwargs['record'])
 
-    run_task_on_referrers(referred, _test_task)
+    run_task_on_referrers(referred, _test_task.s())
     assert len(tasklist) == 3
     assert tasklist == [
         referencing_records[0],
