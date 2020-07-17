@@ -10,11 +10,13 @@
 from __future__ import absolute_import, print_function
 
 from flask import Flask
-from invenio_records.signals import after_record_insert, before_record_update, after_record_update
+from invenio_records.signals import after_record_insert, after_record_update, \
+    before_record_update
 
 from oarepo_references import OARepoReferences
-from oarepo_references.signals import create_references_record, convert_record_refs,\
-    update_references_record, delete_references_record
+from oarepo_references.signals import convert_record_refs, \
+    create_references_record, delete_references_record, \
+    update_references_record
 
 
 def test_version():

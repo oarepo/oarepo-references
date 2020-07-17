@@ -9,8 +9,8 @@
 import pytest
 from celery import shared_task
 
-from oarepo_references.utils import get_reference_uuid, keys_in_dict,\
-    transform_dicts_in_data, run_task_on_referrers
+from oarepo_references.utils import get_reference_uuid, keys_in_dict, \
+    run_task_on_referrers, transform_dicts_in_data
 
 
 @pytest.mark.celery(result_backend='redis://')

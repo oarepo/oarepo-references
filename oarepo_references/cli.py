@@ -16,6 +16,7 @@ from invenio_records.models import RecordMetadata
 from oarepo_references.models import RecordReference
 from oarepo_references.proxies import current_oarepo_references
 from oarepo_references.utils import transform_dicts_in_data
+
 from .signals import convert_to_ref
 
 

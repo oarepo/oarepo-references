@@ -14,8 +14,9 @@ from invenio_records.errors import MissingModelError
 from invenio_records.models import RecordMetadata
 
 from oarepo_references.models import RecordReference
-from oarepo_references.signals import convert_to_ref, convert_record_refs, \
-    create_references_record, update_references_record, delete_references_record
+from oarepo_references.signals import convert_record_refs, convert_to_ref, \
+    create_references_record, delete_references_record, \
+    update_references_record
 
 
 def test_convert_to_ref():
