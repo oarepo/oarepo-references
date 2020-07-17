@@ -9,5 +9,4 @@
 pydocstyle oarepo_references tests docs && \
 isort -rc -c -df && \
 check-manifest --ignore ".travis-*" && \
-sphinx-build -qnNW docs docs/_build/html && \
 pytest
