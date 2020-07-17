@@ -29,6 +29,7 @@ def create_app():
 
 @pytest.fixture(scope="module")
 def references_api():
+    """Returns an instance of RecordReferenceAPI."""
     return RecordReferenceAPI()
 
 
@@ -108,6 +109,7 @@ def referencing_records(db, referenced_records):
 
 @pytest.fixture
 def test_record_data():
+    """Returns a data for a test record."""
     return {
         'pid': 999,
         'title': 'rec1',
@@ -126,6 +128,3 @@ def test_record_data():
             }
         }
     }
-    db.session.commit()
-
-    return referencing_records

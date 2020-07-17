@@ -15,9 +15,7 @@ from oarepo_references.proxies import current_oarepo_references
 
 
 def run_task_on_referrers(reference, task, success_task=None, error_task=None):
-    """
-    Iterates over all referrers referring the given reference and
-    submits a celery task for each referrer.
+    """Iterates over all referrers referring the given reference and submits a celery task for each referrer.
 
     :param reference: reference for which to run the tasks on referrers
     :param task: a celery signature
