@@ -36,16 +36,19 @@ class TestOArepoReferencesAPI:
         recs = list(references_api.get_records('http://localhost/records/', exact=True))
         assert len(recs) == 0
 
-    def test_reindex_referencing_records(self, referenced_records, references_api):
-        def _test_handler(record):
+    def test_reindex_referencing_records(self,
+                                         referenced_records,
+                                         referencing_records,
+                                         references_api):
+        def _test_handler(referrers):
             def _handler(_, references, ref_obj):
-                assert references == [record.model.id]
-                assert ref_obj is record
+                assert set(references) == set(referrers)
 
             return _handler
 
-        handle = _test_handler(referenced_records[0])
+        referencing_records.pop(1)
+
+        handle = _test_handler([r.model.id for r in referencing_records])
         after_reference_update.connect(handle)
 
-        references_api.reindex_referencing_records('http://localhost/records/1',
-                                                   referenced_records[0])
+        references_api.reindex_referencing_records('http://localhost/records/1')

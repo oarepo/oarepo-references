@@ -17,18 +17,46 @@ from oarepo_references.utils import get_reference_uuid, keys_in_dict,\
 def test_run_task_on_referrers(referencing_records, referenced_records):
     """Test that tasks are launched on referring records."""
     referred = 'http://localhost/records/1'
-    tasklist = []
-
-    @shared_task
-    def _test_task(referrer):
-        tasklist.append(referrer)
-
-    run_task_on_referrers(referred, _test_task)
-    assert len(tasklist) == 3
-    assert tasklist == [
+    referers = [
         referencing_records[0],
         referencing_records[2],
         referencing_records[3]]
+    tasklist = []
+    success = False
+
+    @shared_task
+    def _test_success_task(*args, **kwargs):
+        assert kwargs['records'] == referers
+        nonlocal success
+        success = True
+
+    @shared_task
+    def _test_error_task(*args, **kwargs):
+        assert kwargs['record'] == referencing_records[0]
+        nonlocal success
+        success = False
+
+    @shared_task
+    def _test_task(*args, **kwargs):
+        tasklist.append(kwargs['record'])
+
+    @shared_task
+    def _test_failing_task(*args, **kwargs):
+        raise TabError
+
+    run_task_on_referrers(referred, _test_task.s(), _test_success_task.s(), None)
+    assert len(tasklist) == 3
+    assert tasklist == referers
+    assert success is True
+
+    try:
+        run_task_on_referrers(referred,
+                              _test_failing_task.s(),
+                              _test_success_task.s(),
+                              _test_error_task.s())
+    except TabError:
+        pass
+    assert success is False
 
 
 def test_transform_dicts_in_data():
