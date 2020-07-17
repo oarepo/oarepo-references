@@ -5,7 +5,7 @@ from __future__ import absolute_import, print_function
 
 from urllib.parse import urlsplit
 
-from celery import chain, signature
+from celery import chain, signature, chunks
 from flask import current_app
 from invenio_records import Record
 from invenio_records_rest.errors import PIDRESTException
@@ -14,26 +14,39 @@ from werkzeug.exceptions import NotFound
 from oarepo_references.proxies import current_oarepo_references
 
 
-def run_task_on_referrers(reference, task):
+def run_task_on_referrers(reference, task, success_task=None, error_task=None):
     """
     Iterates over all referrers referring the given reference and
     submits a celery task for each referrer.
 
     :param reference: reference for which to run the tasks on referrers
-    :param task: a celery task signature
+    :param task: a celery signature
+    :param success_task: a celery signature to handle success of task chain
+    :param error_task: a celery signature to handle error of a certain task
     """
     refs = current_oarepo_references.get_records(reference)
 
     task_list = []
+    rec_list = []
+
     for ref in refs:
         rec = Record.get_record(id_=ref.record_uuid)
         # Add the referencing record to the task signature
-        task_list.append(task.clone(kwargs={'record': rec}))
+        record_task = task.clone(kwargs={'record': rec})
+        if error_task:
+            record_error = error_task.clone(kwargs={'record': rec})
+            record_task = record_task.on_error(record_error)
+
+        task_list.append(record_task)
+        rec_list.append(rec)
 
     job = chain(
         *task_list
     )
-    job_result = job.apply_async()
+    if success_task:
+        job_result = job.apply_async(link=success_task.clone(kwargs={'records': rec_list}))
+    else:
+        job_result = job.apply_async()
     return job_result
 
 
