@@ -11,7 +11,7 @@ import os
 
 from setuptools import find_packages, setup
 
-readme = open('README.rst').read()
+readme = open('README.md').read()
 history = open('CHANGES.rst').read()
 
 OAREPO_VERSION = os.environ.get('OAREPO_VERSION', '3.2.1')

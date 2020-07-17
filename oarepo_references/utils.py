@@ -5,7 +5,7 @@ from __future__ import absolute_import, print_function
 
 from urllib.parse import urlsplit
 
-from celery import chain, signature, chunks
+from celery import chain
 from flask import current_app
 from invenio_records import Record
 from invenio_records_rest.errors import PIDRESTException
