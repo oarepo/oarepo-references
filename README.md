@@ -29,7 +29,7 @@ class Record(FilesRecord):
 
 ## Signals
 
-Doing so, will register the following signal handlers on the Invenio Records signals that handle
+This module will register the following signal handlers on the Invenio Records signals that handle
 managing of reference records whenever a Record changes:
 
 | Invenio Records signal | Registered [signal handler](https://github.com/oarepo/oarepo-references/blob/master/oarepo_references/signals.py) | Description |
