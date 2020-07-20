@@ -50,7 +50,7 @@ class RecordReferenceAPI(object):
         :param ref:         string reference to be checked
         :param ref_obj:     an object (record etc.) of the reference
         """
-        refs = cls.get_records(ref, exact=True)
+        refs = cls.get_records(ref)
         records = Record.get_records([r.record_uuid for r in refs])
         recids = [r.id for r in records]
         sender = ref_obj if ref_obj else ref
