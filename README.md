@@ -1,4 +1,4 @@
-# Flask Taxonomies
+# OArepo references
 
 [![](https://img.shields.io/github/license/oarepo/flask-taxonomies.svg)](https://github.com/oarepo/flask-taxonomies/blob/master/LICENSE)
 [![](https://img.shields.io/travis/oarepo/flask-taxonomies.svg)](https://travis-ci.org/oarepo/flask-taxonomies)
