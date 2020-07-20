@@ -1,6 +1,9 @@
 dist: xenial
 
 addons:
+  apt:
+    packages:
+    - rabbitmq-server
   postgresql: "9.6"
   # TODO: Add mysql addon as well
 
