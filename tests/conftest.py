@@ -14,6 +14,7 @@ import uuid
 
 import pytest
 from flask import url_for
+from flask_sqlalchemy import SQLAlchemy
 from invenio_app.factory import create_api
 from invenio_pidstore.providers.recordid import RecordIdProvider
 from invenio_records import Record
@@ -29,6 +30,7 @@ def create_app():
 
 @pytest.fixture(scope="module")
 def references_api():
+    """Returns an instance of RecordReferenceAPI."""
     return RecordReferenceAPI()
 
 
@@ -58,6 +60,25 @@ def app_config(app_config):
 
 
 @pytest.fixture
+def db(app):
+    """Returns fresh db."""
+    with app.app_context():
+        app.config["SQLALCHEMY_ECHO"] = True
+        db = SQLAlchemy(app)
+        db.drop_all()
+        db.create_all()
+        try:
+            yield db
+        finally:
+            try:
+                db.session.commit()
+            except:
+                pass
+            db.drop_all()
+            db.session.commit()
+
+
+@pytest.fixture
 def referenced_records(db):
     """Create a list of records to be referenced by other records."""
     rrdata = [{'title': 'a'}, {'title': 'b'}]
@@ -76,29 +97,30 @@ def referenced_records(db):
     return referenced_records
 
 
+def get_ref_url(pid):
+    """Returns canonical_url for a record by its PID."""
+    return url_for('invenio_records_rest.recid_item',
+                   pid_value=pid, _external=True)
+
+
 @pytest.fixture
 def referencing_records(db, referenced_records):
     """Create sample records with references to others."""
-
-    def _get_ref_url(pid):
-        return url_for('invenio_records_rest.recid_item',
-                       pid_value=pid, _external=True)
-
     referencing_records = [
         Record.create({
             'title': 'c',
-            '$ref': _get_ref_url(referenced_records[0]['pid'])
+            '$ref': get_ref_url(referenced_records[0]['pid'])
         }),
         Record.create({
             'title': 'd',
-            '$ref': _get_ref_url(referenced_records[1]['pid'])
+            '$ref': get_ref_url(referenced_records[1]['pid'])
         }),
         Record.create({'title': 'e', 'reflist': [
-            {'$ref': _get_ref_url(referenced_records[1]['pid'])},
-            {'$ref': _get_ref_url(referenced_records[0]['pid'])}
+            {'$ref': get_ref_url(referenced_records[1]['pid'])},
+            {'$ref': get_ref_url(referenced_records[0]['pid'])}
         ]}),
         Record.create({'title': 'f', 'reflist': [
-            {'title': 'f', '$ref': _get_ref_url(referenced_records[0]['pid'])},
+            {'title': 'f', '$ref': get_ref_url(referenced_records[0]['pid'])},
         ]})
     ]
     db.session.commit()
@@ -108,6 +130,7 @@ def referencing_records(db, referenced_records):
 
 @pytest.fixture
 def test_record_data():
+    """Returns a data for a test record."""
     return {
         'pid': 999,
         'title': 'rec1',
@@ -126,6 +149,3 @@ def test_record_data():
             }
         }
     }
-    db.session.commit()
-
-    return referencing_records

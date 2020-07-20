@@ -5,7 +5,7 @@ from __future__ import absolute_import, print_function
 
 from urllib.parse import urlsplit
 
-from celery import chain, signature, chunks
+from celery import chain
 from flask import current_app
 from invenio_records import Record
 from invenio_records_rest.errors import PIDRESTException
@@ -16,8 +16,7 @@ from oarepo_references.proxies import current_oarepo_references
 
 def run_task_on_referrers(reference, task, success_task=None, error_task=None):
     """
-    Iterates over all referrers referring the given reference and
-    submits a celery task for each referrer.
+    Queues a task for all referrers referring the given reference.
 
     :param reference: reference for which to run the tasks on referrers
     :param task: a celery signature
@@ -106,7 +105,11 @@ def keys_in_dict(data, key='$ref', required_type=None):
 
 
 def get_reference_uuid(ref_url):
-    """Returns a record uuid of the given reference or None if the referenced object could not be found."""
+    """
+    Returns a record uuid of the given reference.
+
+    Or None if the referenced object could not be found.
+    """
     if not isinstance(ref_url, str):
         return None
 

@@ -35,14 +35,12 @@ class RecordReferenceAPI(object):
         with db.session.no_autoflush:
             if exact:
                 query = RecordReference.query \
-                    .filter(RecordReference.reference == reference) \
-                    .distinct(RecordReference.record_uuid)
+                    .filter(RecordReference.reference == reference)
             else:
                 query = RecordReference.query \
-                    .filter(RecordReference.reference.startswith(reference)) \
-                    .distinct(RecordReference.record_uuid)
+                    .filter(RecordReference.reference.startswith(reference))
 
-            return query.all()
+        return query.all()
 
     @classmethod
     def reindex_referencing_records(cls, ref, ref_obj=None):

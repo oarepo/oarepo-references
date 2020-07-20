@@ -46,7 +46,6 @@ class OARepoReferences(object):
 
     def init_app(self, app):
         """Flask application initialization."""
-
         # Connect invenio-records signal handlers
         after_record_insert.connect(create_references_record)
         before_record_update.connect(convert_record_refs)
