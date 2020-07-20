@@ -7,9 +7,9 @@
 
 """Test API class methods."""
 import pytest
+from tests.conftest import get_ref_url
 
 from oarepo_references.signals import after_reference_update
-from tests.conftest import get_ref_url
 
 
 @pytest.mark.usefixtures("db")
