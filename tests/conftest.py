@@ -14,6 +14,7 @@ import uuid
 
 import pytest
 from flask import url_for
+from flask_sqlalchemy import SQLAlchemy
 from invenio_app.factory import create_api
 from invenio_pidstore.providers.recordid import RecordIdProvider
 from invenio_records import Record
@@ -59,6 +60,24 @@ def app_config(app_config):
 
 
 @pytest.fixture
+def db(app):
+    with app.app_context():
+        app.config["SQLALCHEMY_ECHO"] = True
+        db = SQLAlchemy(app)
+        db.drop_all()
+        db.create_all()
+        try:
+            yield db
+        finally:
+            try:
+                db.session.commit()
+            except:
+                pass
+            db.drop_all()
+            db.session.commit()
+
+
+@pytest.fixture
 def referenced_records(db):
     """Create a list of records to be referenced by other records."""
     rrdata = [{'title': 'a'}, {'title': 'b'}]
@@ -77,29 +96,30 @@ def referenced_records(db):
     return referenced_records
 
 
+def get_ref_url(pid):
+    return url_for('invenio_records_rest.recid_item',
+                   pid_value=pid, _external=True)
+
+
 @pytest.fixture
 def referencing_records(db, referenced_records):
     """Create sample records with references to others."""
 
-    def _get_ref_url(pid):
-        return url_for('invenio_records_rest.recid_item',
-                       pid_value=pid, _external=True)
-
     referencing_records = [
         Record.create({
             'title': 'c',
-            '$ref': _get_ref_url(referenced_records[0]['pid'])
+            '$ref': get_ref_url(referenced_records[0]['pid'])
         }),
         Record.create({
             'title': 'd',
-            '$ref': _get_ref_url(referenced_records[1]['pid'])
+            '$ref': get_ref_url(referenced_records[1]['pid'])
         }),
         Record.create({'title': 'e', 'reflist': [
-            {'$ref': _get_ref_url(referenced_records[1]['pid'])},
-            {'$ref': _get_ref_url(referenced_records[0]['pid'])}
+            {'$ref': get_ref_url(referenced_records[1]['pid'])},
+            {'$ref': get_ref_url(referenced_records[0]['pid'])}
         ]}),
         Record.create({'title': 'f', 'reflist': [
-            {'title': 'f', '$ref': _get_ref_url(referenced_records[0]['pid'])},
+            {'title': 'f', '$ref': get_ref_url(referenced_records[0]['pid'])},
         ]})
     ]
     db.session.commit()

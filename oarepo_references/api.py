@@ -35,14 +35,12 @@ class RecordReferenceAPI(object):
         with db.session.no_autoflush:
             if exact:
                 query = RecordReference.query \
-                    .filter(RecordReference.reference == reference) \
-                    .distinct(RecordReference.record_uuid)
+                    .filter(RecordReference.reference == reference)
             else:
                 query = RecordReference.query \
-                    .filter(RecordReference.reference.startswith(reference)) \
-                    .distinct(RecordReference.record_uuid)
+                    .filter(RecordReference.reference.startswith(reference))
 
-            return query.all()
+        return query.all()
 
     @classmethod
     def reindex_referencing_records(cls, ref, ref_obj=None):
@@ -52,7 +50,7 @@ class RecordReferenceAPI(object):
         :param ref:         string reference to be checked
         :param ref_obj:     an object (record etc.) of the reference
         """
-        refs = cls.get_records(ref)
+        refs = cls.get_records(ref, exact=True)
         records = Record.get_records([r.record_uuid for r in refs])
         recids = [r.id for r in records]
         sender = ref_obj if ref_obj else ref
