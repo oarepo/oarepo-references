@@ -61,6 +61,7 @@ def app_config(app_config):
 
 @pytest.fixture
 def db(app):
+    """Returns fresh db."""
     with app.app_context():
         app.config["SQLALCHEMY_ECHO"] = True
         db = SQLAlchemy(app)
@@ -97,6 +98,7 @@ def referenced_records(db):
 
 
 def get_ref_url(pid):
+    """Returns canonical_url for a record by its PID."""
     return url_for('invenio_records_rest.recid_item',
                    pid_value=pid, _external=True)
 
@@ -104,7 +106,6 @@ def get_ref_url(pid):
 @pytest.fixture
 def referencing_records(db, referenced_records):
     """Create sample records with references to others."""
-
     referencing_records = [
         Record.create({
             'title': 'c',
