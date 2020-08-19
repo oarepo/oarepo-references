@@ -10,16 +10,19 @@
 See https://pytest-invenio.readthedocs.io/ for documentation on which test
 fixtures are available.
 """
+import os
 import uuid
 
 import pytest
 from flask import url_for
-from flask_sqlalchemy import SQLAlchemy
 from invenio_app.factory import create_api
+from invenio_db import db as _db
 from invenio_pidstore.providers.recordid import RecordIdProvider
 from invenio_records import Record
+from sqlalchemy_utils import database_exists, create_database
 
 from oarepo_references.api import RecordReferenceAPI
+from oarepo_references.models import ClassName
 
 
 @pytest.fixture(scope="module")
@@ -37,7 +40,15 @@ def references_api():
 @pytest.fixture(scope="module")
 def app_config(app_config):
     """Flask application fixture."""
-    app_config['SERVER_NAME'] = 'localhost'
+    app_config = dict(
+        TESTING=True,
+        JSON_AS_ASCII=True,
+        SQLALCHEMY_TRACK_MODIFICATIONS=True,
+        SQLALCHEMY_DATABASE_URI=os.environ.get(
+            'SQLALCHEMY_DATABASE_URI',
+            'sqlite:///:memory:'),
+        SERVER_NAME='localhost'
+    )
     app_config['PIDSTORE_RECID_FIELD'] = 'pid'
     app_config['RECORDS_REST_ENDPOINTS'] = dict(
         recid=dict(
@@ -63,19 +74,16 @@ def app_config(app_config):
 def db(app):
     """Returns fresh db."""
     with app.app_context():
-        app.config["SQLALCHEMY_ECHO"] = True
-        db = SQLAlchemy(app)
-        db.drop_all()
-        db.create_all()
-        try:
-            yield db
-        finally:
-            try:
-                db.session.commit()
-            except:
-                pass
-            db.drop_all()
-            db.session.commit()
+        if not database_exists(str(_db.engine.url)) and \
+           app.config['SQLALCHEMY_DATABASE_URI'] != 'sqlite://':
+            create_database(_db.engine.url)
+        _db.create_all()
+
+    yield _db
+
+    # Explicitly close DB connection
+    _db.session.close()
+    _db.drop_all()
 
 
 @pytest.fixture
@@ -101,6 +109,16 @@ def get_ref_url(pid):
     """Returns canonical_url for a record by its PID."""
     return url_for('invenio_records_rest.recid_item',
                    pid_value=pid, _external=True)
+
+
+@pytest.fixture
+def class_names(db):
+    class_names = [
+        ClassName.create(name=str(Record.__class__))
+    ]
+
+    db.session.commit()
+    return class_names
 
 
 @pytest.fixture
