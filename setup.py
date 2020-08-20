@@ -14,7 +14,7 @@ from setuptools import find_packages, setup
 readme = open('README.md').read()
 history = open('CHANGES.rst').read()
 
-OAREPO_VERSION = os.environ.get('OAREPO_VERSION', '3.2.1')
+OAREPO_VERSION = os.environ.get('OAREPO_VERSION', '3.2.2')
 
 tests_require = [
 ]
@@ -25,7 +25,7 @@ extras_require = {
     ],
     'tests': [
         'oarepo[tests]~={version}'.format(version=OAREPO_VERSION),
-        'flask-taxonomies>=6.6.8'
+        'flask-taxonomies>=6.6.8',
     ],
     'tests-es7': [
         'oarepo[tests-es7,taxonomies]~={version}'.format(version=OAREPO_VERSION)
@@ -37,6 +37,7 @@ setup_requires = [
 ]
 
 install_requires = [
+    'oarepo-validate>=1.1.0'
 ]
 
 packages = find_packages()

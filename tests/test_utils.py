@@ -8,9 +8,50 @@
 """Test utility functions."""
 import pytest
 from celery import shared_task
+from invenio_records import Record
+from invenio_records_rest.schemas.fields import SanitizedUnicode
+from marshmallow import Schema
+from marshmallow.fields import URL, Field, Number
+from oarepo_validate import MarshmallowValidatedRecordMixin
 
+from oarepo_references.mixins import ReferenceEnabledRecordMixin
+from oarepo_references.schemas.fields.reference import ReferenceFieldMixin
 from oarepo_references.utils import get_reference_uuid, keys_in_dict, \
     run_task_on_referrers, transform_dicts_in_data
+
+
+class URLReferenceField(ReferenceFieldMixin, URL):
+    """URL reference marshmallow field."""
+    pass
+
+
+class LinksField(Field):
+    """Taxonomy links field."""
+    self = URLReferenceField()
+
+
+class TaxonomyField(Field):
+    """Taxonomy field."""
+    links = LinksField()
+    slug = SanitizedUnicode()
+
+
+class TestSchema(Schema):
+    """Test record schema."""
+    title = SanitizedUnicode()
+    pid = Number()
+    taxo1 = TaxonomyField()
+    sub = TaxonomyField()
+    ref = URLReferenceField(attribute='$ref')
+
+
+class TestRecord(MarshmallowValidatedRecordMixin,
+                 ReferenceEnabledRecordMixin,
+                 Record):
+    """Reference enabled test record class."""
+    MARSHMALLOW_SCHEMA = TestSchema
+    VALIDATE_MARSHMALLOW = True
+    VALIDATE_PATCH = True
 
 
 @pytest.mark.celery(result_backend='redis://')

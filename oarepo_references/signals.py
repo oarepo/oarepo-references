@@ -12,6 +12,8 @@ from __future__ import absolute_import, print_function
 from blinker import Namespace
 from invenio_db import db
 from invenio_records.errors import MissingModelError
+from invenio_records.signals import after_record_insert
+from oarepo_validate import after_marshmallow_validate
 
 from oarepo_references.models import RecordReference
 from oarepo_references.proxies import current_oarepo_references
@@ -33,6 +35,14 @@ from `kwarg['record']`.
    Do not perform any modification to the referenced object here:
    they will be not persisted.
 """
+
+
+@after_marshmallow_validate.connect
+def set_references_from_context(sender, record, context, result, **kwargs):
+    """A signal receiver to set record references from validation context."""
+    record.oarepo_references = context['references']
+
+    return record
 
 
 def convert_to_ref(in_data, key='$ref'):
@@ -59,27 +69,17 @@ def convert_record_refs(sender, record, *args, **kwargs):
     return transform_dicts_in_data(record, convert_to_ref)
 
 
+@after_record_insert.connect
 def create_references_record(sender, record, *args, **kwargs):
     """A signal receiver that creates record references on record create."""
-    try:
-        refs = keys_in_dict(record, required_type=str)
-        for ref in refs:
-            ref_uuid = get_reference_uuid(ref)
-            with db.session.begin_nested():
-                exists = db.session.query(RecordReference.query
-                                          .filter(RecordReference.record_uuid == record.model.id)
-                                          .filter(RecordReference.reference == ref)
-                                          .exists()).scalar()
-                if exists:
-                    if kwargs.get('throw'):
-                        raise FileExistsError
-                else:
-                    rr = RecordReference(record_uuid=record.model.id,
-                                         reference=ref,
-                                         reference_uuid=ref_uuid)
-                    db.session.add(rr)
-    except (KeyError, AttributeError):
-        raise MissingModelError()
+    assert record.oarepo_references is not None,\
+        "oarepo_references needs to be set on a record instance"
+
+    with db.session.nested():
+        for ref in record.oarepo_references:
+            RecordReference.create(record, **ref)
+
+    db.session.commit()
 
 
 def update_references_record(sender, record, *args, **kwargs):

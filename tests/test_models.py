@@ -34,7 +34,7 @@ class TestReferencesModels:
 
     def test_referencing_record_create(self, db, referencing_records, class_names):
         """Test create ReferencingRecord."""
-        rec: Record = referencing_records[0]
+        rec = referencing_records[0]
 
         rr = ReferencingRecord.create(record_uuid=rec.id, class_name=class_names[0])
         db.session.commit()
@@ -42,10 +42,10 @@ class TestReferencesModels:
         assert rr.record_uuid == rec.id
         assert rr.class_name.name == class_names[0].name
 
-    def test_reference_record_create(self, db, referencing_records, referenced_records, class_names):
+    def test_reference_record_create(self, db, referencing_records, referenced_records):
         """Test create ReferenceRecord for a certain record."""
-        rec: Record = referencing_records[0]
-        ref: Record = referenced_records[0]
+        rec = referencing_records[0]
+        ref = referenced_records[0]
         reference = get_ref_url(ref['pid'])
 
         rr = RecordReference.create(rec, reference, ref.id, inline=True)

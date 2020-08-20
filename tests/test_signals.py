@@ -16,7 +16,24 @@ from invenio_records.models import RecordMetadata
 from oarepo_references.models import RecordReference
 from oarepo_references.signals import convert_record_refs, convert_to_ref, \
     create_references_record, delete_references_record, \
-    update_references_record
+    update_references_record, set_references_from_context
+
+
+def test_set_references_from_context(referencing_records, referenced_records):
+    """Test if oarepo references are set from a record validation ctx."""
+    rec = referencing_records[0]
+    ref = referenced_records[0]
+
+    ctx = dict(references=[
+        dict(
+            reference=None,
+            reference_uuid=ref.id,
+            inline=False
+        )
+    ])
+
+    rec = set_references_from_context(rec, rec, ctx, True)
+    assert rec.oarepo_references == ctx['references']
 
 
 def test_convert_to_ref():

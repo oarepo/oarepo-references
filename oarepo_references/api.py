@@ -14,6 +14,7 @@ from invenio_indexer.api import RecordIndexer
 from invenio_records import Record
 from invenio_search import current_search_client
 
+from oarepo_references.mixins import ReferenceEnabledRecordMixin
 from oarepo_references.models import RecordReference
 from oarepo_references.signals import after_reference_update
 from oarepo_references.utils import get_reference_uuid, keys_in_dict
@@ -23,6 +24,21 @@ class RecordReferenceAPI(object):
     """Represent a record reference."""
 
     indexer_version_type = None
+
+    @classmethod
+    def reference_content_changed(cls, ref_obj, ref_url=None, ref_uuid=None):
+        """Find & update records that have inlined the changed reference."""
+        assert ref_url or ref_uuid, 'Reference URL or UUID must be provided'
+
+        updated = []
+
+        records_to_update = cls.get_records(ref_url, exact=True)
+        for r in records_to_update:
+            if isinstance(r, ReferenceEnabledRecordMixin):
+                r.update_inlined_ref(ref_url, ref_uuid, ref_obj)
+                updated.append(r)
+
+        return updated
 
     @classmethod
     def get_records(cls, reference, exact=False):

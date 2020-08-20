@@ -19,10 +19,14 @@ from invenio_app.factory import create_api
 from invenio_db import db as _db
 from invenio_pidstore.providers.recordid import RecordIdProvider
 from invenio_records import Record
+from invenio_records_rest.schemas.fields import SanitizedUnicode
+from marshmallow import Schema
+from marshmallow.fields import URL, Number, Field, Nested
 from sqlalchemy_utils import database_exists, create_database
 
 from oarepo_references.api import RecordReferenceAPI
 from oarepo_references.models import ClassName
+from oarepo_references.schemas.fields.reference import ReferenceFieldMixin
 
 
 @pytest.fixture(scope="module")

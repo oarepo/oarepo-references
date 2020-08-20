@@ -7,26 +7,48 @@
 
 """Test API class methods."""
 import pytest
-from tests.conftest import get_ref_url
+from invenio_records import Record
 
 from oarepo_references.signals import after_reference_update
+from tests.conftest import get_ref_url
 
 
 @pytest.mark.usefixtures("db")
 class TestOArepoReferencesAPI:
-    """Taxonomy model tests."""
+    """Taxonomy API tests."""
+
+    def test_reference_content_changed(self, referenced_records, references_api):
+        """Test reference content change handler."""
+        ref = referenced_records[0]
+        ref['title'] = 'change'
+        ref.commit()
+
+        with pytest.raises(AssertionError):
+            references_api.reference_content_changed(ref)
+
+        updated = references_api.reference_content_changed(
+            ref,
+            ref_url='http://localhost/records/1',
+            ref_uuid=ref.id
+        )
+
+        assert len(updated) == 3
+
+    def test_reference_changed(self, db, referencing_records, referenced_records, references_api):
+        """Test reference name change handler."""
+        assert False
 
     def test_get_records(self, db, referencing_records, references_api):
         """Test that we can get reference records referencing a reference."""
         recs = list(references_api.get_records('http://localhost/records/1'))
         assert len(recs) == 3
         assert set(rc.record_uuid for rc in recs) == \
-            set([rr.model.id for i, rr in enumerate(referencing_records) if i in [0, 2, 3]])
+               set([rr.model.id for i, rr in enumerate(referencing_records) if i in [0, 2, 3]])
 
         recs = list(references_api.get_records('http://localhost/records/2'))
         assert len(recs) == 2
         assert set(rc.record_uuid for rc in recs) == \
-            set([rr.model.id for i, rr in enumerate(referencing_records) if i in [1, 2]])
+               set([rr.model.id for i, rr in enumerate(referencing_records) if i in [1, 2]])
 
         recs = list(references_api.get_records('http://localhost/records/3'))
         assert len(recs) == 0
