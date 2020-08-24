@@ -44,12 +44,12 @@ class TestOArepoReferencesAPI:
         """Test that we can get reference records referencing a reference."""
         recs = list(references_api.get_records('http://localhost/records/1'))
         assert len(recs) == 3
-        assert set(rc.record_uuid for rc in recs) == \
+        assert set(rc.record.record_uuid for rc in recs) == \
                set([rr.model.id for i, rr in enumerate(referencing_records) if i in [0, 2, 3]])
 
         recs = list(references_api.get_records('http://localhost/records/2'))
         assert len(recs) == 2
-        assert set(rc.record_uuid for rc in recs) == \
+        assert set(rc.record.record_uuid for rc in recs) == \
                set([rr.model.id for i, rr in enumerate(referencing_records) if i in [1, 2]])
 
         recs = list(references_api.get_records('http://localhost/records/3'))

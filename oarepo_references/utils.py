@@ -54,61 +54,6 @@ def run_task_on_referrers(reference, task, success_task=None, error_task=None):
     return job_result
 
 
-def transform_dicts_in_data(data, func):
-    """
-    Calls a function on all dicts contained in data input.
-
-    :param func: transform func to apply on each dict in data
-    :param data: data dict or list
-    """
-
-    def _transform_value(val, k):
-        if isinstance(val, dict):
-            data[k] = transform_dicts_in_data(val, func)
-        elif isinstance(val, list):
-            for idx, v in enumerate(val):
-                if isinstance(v, dict) or isinstance(v, list):
-                    data[k][idx] = transform_dicts_in_data(v, func)
-
-    if isinstance(data, list):
-        for idx, item in enumerate(data):
-            _transform_value(item, idx)
-        # TODO: find out why we need to wrap list in dict like this
-        return {'_': data}
-
-    for key, value in data.items():
-        _transform_value(value, key)
-
-    if isinstance(data, dict):
-        return func(data)
-
-
-def keys_in_dict(data, key='$ref', required_type=None):
-    """
-    Returns an array of all key occurrences in a given dict.
-
-    :param data: haystack in which we are looking for needle
-    :param key: a key name we should be looking for
-    :param required_type: a required type of a value
-    :return: Array[object] list of values of all occurrences of a given key.
-    """
-    if isinstance(data, list):
-        data = {'_': data}
-
-    for k, v in data.items():
-        if k == key:
-            if not required_type or isinstance(v, required_type):
-                yield v
-        if isinstance(v, dict):
-            for result in keys_in_dict(v, key, required_type):
-                yield result
-        elif isinstance(v, list):
-            for d in v:
-                if isinstance(d, dict) or isinstance(d, list):
-                    for result in keys_in_dict(d, key, required_type):
-                        yield result
-
-
 def get_reference_uuid(ref_url):
     """
     Returns a record uuid of the given reference.

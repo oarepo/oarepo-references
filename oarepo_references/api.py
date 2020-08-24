@@ -16,9 +16,8 @@ from invenio_records import Record
 from invenio_search import current_search_client
 
 from oarepo_references.mixins import ReferenceEnabledRecordMixin
-from oarepo_references.models import RecordReference
+from oarepo_references.models import RecordReference, ReferencingRecord
 from oarepo_references.signals import after_reference_update
-from oarepo_references.utils import get_reference_uuid, keys_in_dict
 
 
 class RecordReferenceAPI(object):
@@ -71,7 +70,7 @@ class RecordReferenceAPI(object):
         :param ref_obj:     an object (record etc.) of the reference
         """
         refs = cls.get_records(ref)
-        records = Record.get_records([r.record_uuid for r in refs])
+        records = Record.get_records([r.record.record_uuid for r in refs])
         recids = [r.id for r in records]
         sender = ref_obj if ref_obj else ref
         indexed = after_reference_update.send(sender, references=recids, ref_obj=ref_obj)
@@ -90,22 +89,8 @@ class RecordReferenceAPI(object):
         """
         with db.session.begin_nested():
             # Find all entries for record id
-            rrs = RecordReference.query.filter_by(record_uuid=record.model.id)
-            rec_refs = list(set(list(keys_in_dict(record, required_type=str))))
-            db_refs = list(set([r[0] for r in rrs.values('reference')]))
-
+            rr = ReferencingRecord.query.filter_by(record_uuid=record.model.id).one()
             record.validate()
-
-            # Delete removed/add added references
-            for rr in rrs.all():
-                if rr.reference not in rec_refs:
-                    db.session.delete(rr)
-            for ref in rec_refs:
-                if ref not in db_refs:
-                    ref_uuid = get_reference_uuid(ref)
-                    rr = RecordReference(record_uuid=record.model.id, reference=ref,
-                                         reference_uuid=ref_uuid)
-                    db.session.add(rr)
 
 
 __all__ = (

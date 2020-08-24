@@ -6,14 +6,13 @@
 # it under the terms of the MIT License; see LICENSE file for more details.
 
 """Test signal handler functions."""
-import uuid
-
 import pytest
+import uuid
 from invenio_records import Record
 from invenio_records.errors import MissingModelError
 from invenio_records.models import RecordMetadata
 
-from oarepo_references.models import RecordReference
+from oarepo_references.models import RecordReference, ReferencingRecord
 from oarepo_references.signals import create_references_record, set_references_from_context
 
 
@@ -32,6 +31,12 @@ def test_set_references_from_context(referencing_records, referenced_records):
 
     rec = set_references_from_context(rec, rec, ctx, True)
     assert rec.oarepo_references == ctx['references']
+    assert len(rec.oarepo_references) == 1
+    assert rec.oarepo_references[0] == dict(
+        reference=None,
+        reference_uuid=ref.id,
+        inline=False
+    )
 
 
 def test_create_references_record(db, referencing_records, test_record_data):
@@ -80,9 +85,9 @@ def test_delete_references_record(referencing_records):
     """Test that we can delete references record."""
     deleted = referencing_records[2]
 
-    rr = RecordReference.query.filter(RecordReference.record_uuid == deleted.model.id).all()
+    rr = ReferencingRecord.query.filter(ReferencingRecord.record_uuid == deleted.model.id).all()
     assert len(rr) == 2
 
     delete_references_record(deleted, deleted)
-    rr = RecordReference.query.filter(RecordReference.record_uuid == deleted.model.id).all()
+    rr = ReferencingRecord.query.filter(ReferencingRecord.record_uuid == deleted.model.id).all()
     assert len(rr) == 0

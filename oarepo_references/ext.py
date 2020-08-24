@@ -9,10 +9,7 @@
 
 from __future__ import absolute_import, print_function
 
-from invenio_records.signals import after_record_insert
-
 from oarepo_references.api import RecordReferenceAPI
-from oarepo_references.signals import create_references_record
 
 
 class _RecordReferencesState(object):
@@ -43,12 +40,6 @@ class OARepoReferences(object):
 
     def init_app(self, app):
         """Flask application initialization."""
-        # TODO: Connect invenio-records signal handlers
-        after_record_insert.connect(create_references_record)
-        # before_record_update.connect(convert_record_refs)
-        # after_record_update.connect(update_references_record)
-        # after_record_delete.connect(delete_references_record)
-
         state = _RecordReferencesState(app)
         app.extensions['oarepo-references'] = state
         return state

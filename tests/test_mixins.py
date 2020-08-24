@@ -15,8 +15,8 @@ from tests.test_utils import TestRecord
 class TestOArepoMixins:
     """OARepo references mixins."""
 
-    def test_reference_enabled_record(self, referenced_records, test_record_data):
-        """Test Reference enabled record Mixin."""
+    def test_update_inline_ref(self, referenced_records, test_record_data):
+        """Test Reference enabled record Mixin update method."""
 
         rec = TestRecord.create(test_record_data)
         ref = {'links': {

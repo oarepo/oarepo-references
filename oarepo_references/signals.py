@@ -11,14 +11,10 @@ from __future__ import absolute_import, print_function
 
 from blinker import Namespace
 from invenio_db import db
-from invenio_records.errors import MissingModelError
 from invenio_records.signals import after_record_insert
-from oarepo_validate import after_marshmallow_validate, before_marshmallow_validate
+from oarepo_validate import after_marshmallow_validate
 
 from oarepo_references.models import RecordReference
-from oarepo_references.proxies import current_oarepo_references
-from oarepo_references.utils import get_reference_uuid, keys_in_dict, \
-    transform_dicts_in_data
 
 _signals = Namespace()
 
@@ -47,7 +43,7 @@ def set_references_from_context(sender, record, context, result, **kwargs):
 @after_record_insert.connect
 def create_references_record(sender, record, *args, **kwargs):
     """A signal receiver that creates record references on record create."""
-    assert record.oarepo_references is not None,\
+    assert record.oarepo_references is not None, \
         "oarepo_references needs to be set on a record instance"
 
     with db.session.begin_nested():

@@ -17,7 +17,7 @@ class TestOArepoReferencesFields:
     """OARepo references fields test."""
 
     def test_reference_field(self, test_record_data):
-        """Test marshmallow schema ReferenceField."""
+        """Test marshmallow schema ReferenceField methods."""
         schema = TestSchema()
         rf = schema.fields['ref']
         assert isinstance(rf, ReferenceFieldMixin)

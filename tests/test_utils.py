@@ -18,8 +18,7 @@ from oarepo_validate import MarshmallowValidatedRecordMixin
 
 from oarepo_references.mixins import ReferenceEnabledRecordMixin
 from oarepo_references.schemas.fields.reference import ReferenceFieldMixin
-from oarepo_references.utils import get_reference_uuid, keys_in_dict, \
-    run_task_on_referrers, transform_dicts_in_data
+from oarepo_references.utils import get_reference_uuid, run_task_on_referrers
 
 
 class URLReferenceField(ReferenceFieldMixin, URL):
@@ -58,6 +57,7 @@ class TaxonomySchema(Schema):
 
     def self_url(self, data):
         return data.get('links').get('self')
+
 
 class NestedTaxonomySchema(Schema):
     """Nested Taxonomy schema."""
@@ -133,43 +133,6 @@ def test_run_task_on_referrers(referencing_records, referenced_records):
     except TabError:
         pass
     assert success is False
-
-
-def test_transform_dicts_in_data():
-    """Test transformation of dicts in data."""
-    test_cases = [
-        ({'a': 'c'}, lambda x: {**x, 'b': 'd'}, {'a': 'c', 'b': 'd'}),
-        ([{'a': 'c'}, {'d': 'e'}],
-         lambda x: {**x, 'b': 'd'},
-         {'_': [{'a': 'c', 'b': 'd'}, {'b': 'd', 'd': 'e'}]}),
-        ([{'a': 'c'}, {'d': 'e'}, [{'x': 'y'}]],
-         lambda x: {**x, 'b': 'd'},
-         {'_': [{'a': 'c', 'b': 'd'},
-                {'b': 'd', 'd': 'e'},
-                [{'b': 'd', 'x': 'y'}]]})
-    ]
-
-    for case in test_cases:
-        data, transform, expected = case
-        res = transform_dicts_in_data(data, transform)
-        assert res == expected
-
-
-def test_keys_in_dict():
-    """Test that we could find a key anywhere in a given data."""
-    test_cases = [
-        ({'$ref': 'a'}, None, ['a']),
-        ({'c': {'$ref': 'a'}}, None, ['a']),
-        ({'c': {'$ref': 'a'}, 'b': {'$ref': 'c'}}, None, ['a', 'c']),
-        ({'c': {'$ref': 'a'}, 'b': [{'f': 'g'}, {'d': 'e', '$ref': 'c'}]}, None, ['a', 'c']),
-        ([{'$ref': 'g'}, {'c': {'$ref': 'a'}}], None, ['g', 'a']),
-        ([{'$ref': 3}, {'c': {'$ref': 'a'}}], int, [3]),
-    ]
-
-    for case in test_cases:
-        data, required, expected = case
-        res = list(keys_in_dict(data, required_type=required))
-        assert res == expected
 
 
 def test_get_reference_uuid(referencing_records, referenced_records):
