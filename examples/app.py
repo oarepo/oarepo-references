@@ -43,12 +43,75 @@ SPHINX-END
 
 from __future__ import absolute_import, print_function
 
+import os
+import typing
+
 from flask import Flask
 from flask_babelex import Babel
+from invenio_records import Record
+from invenio_records_rest.schemas.fields import SanitizedUnicode
+from marshmallow import Schema, missing, post_load
+from marshmallow.fields import URL, Field
+from oarepo_validate import MarshmallowValidatedRecordMixin
 
 from oarepo_references import OARepoReferences
+from oarepo_references.mixins import ReferenceEnabledRecordMixin
+from oarepo_references.schemas.fields.reference import ReferenceFieldMixin
+
+
+class ExampleURLReferenceField(ReferenceFieldMixin, URL):
+    """URL reference marshmallow field."""
+
+    def deserialize(self,
+                    value: typing.Any,
+                    attr: str = None,
+                    data: typing.Mapping[str, typing.Any] = None,
+                    **kwargs):
+        output = super(ExampleURLReferenceField, self).deserialize(value, attr, data, **kwargs)
+        if output is missing:
+            return output
+        changes = self.context.get('changed_reference', None)
+        # TODO: update value if the changes are related to this instance
+        self.register(output, None, False)
+        return output
+
+
+class ExampleLinksField(Field):
+    """Taxonomy links field."""
+    self = ExampleURLReferenceField()
+
+
+class ExampleReferenceSchema(Schema):
+    """Taxonomy schema."""
+    links = ExampleLinksField()
+    slug = SanitizedUnicode()
+
+    @post_load
+    def update_inline_changes(self, data, many, **kwargs):
+        changes = self.context.get('changed_reference', None)
+        if changes and changes['url'] == self.self_url(data):
+            data = changes['content']
+        return data
+
+    @staticmethod
+    def self_url(data):
+        return data.get('links', {}).get('self', None)
+
+
+class ExampleRecord(MarshmallowValidatedRecordMixin,
+                    ReferenceEnabledRecordMixin,
+                    Record):
+    """References enabled example record class."""
+    MARSHMALLOW_SCHEMA = ExampleReferenceSchema
+    VALIDATE_MARSHMALLOW = True
+    VALIDATE_PATCH = True
+
 
 # Create Flask application
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI', "sqlite:///:memory:")
+app.config['SERVER_NAME'] = os.environ.get('SERVER_NAME', '127.0.0.1:5000')
+app.config['PREFERRED_URL_SCHEME'] = 'http'
+app.config["SQLALCHEMY_ECHO"] = True
 Babel(app)
 OARepoReferences(app)

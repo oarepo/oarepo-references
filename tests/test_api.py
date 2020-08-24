@@ -38,7 +38,12 @@ class TestOArepoReferencesAPI:
 
     def test_reference_changed(self, db, referencing_records, referenced_records, references_api):
         """Test reference name change handler."""
-        assert False
+        ref = referenced_records[1]
+        updated = references_api.reference_changed(
+            old='http://localhost/records/2',
+            new='http://localhost/records/new',
+        )
+        assert len(updated) == 2
 
     def test_get_records(self, db, referencing_records, references_api):
         """Test that we can get reference records referencing a reference."""

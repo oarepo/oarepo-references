@@ -7,6 +7,7 @@ from urllib.parse import urlsplit
 
 from celery import chain
 from flask import current_app
+from invenio_base.utils import obj_or_import_string
 from invenio_records import Record
 from invenio_records_rest.errors import PIDRESTException
 from werkzeug.exceptions import NotFound
@@ -52,6 +53,13 @@ def run_task_on_referrers(reference, task, success_task=None, error_task=None):
     else:
         job_result = job.apply_async()
     return job_result
+
+
+def get_record_object(rec_ref):
+    """Fetches an instance of a Record from a certain reference record."""
+    rec = rec_ref.record
+    rec_cls = obj_or_import_string(rec.class_name.name, Record)
+    return rec_cls.get_record(rec.record_uuid)
 
 
 def get_reference_uuid(ref_url):

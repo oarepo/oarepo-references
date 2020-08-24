@@ -18,6 +18,7 @@ from invenio_search import current_search_client
 from oarepo_references.mixins import ReferenceEnabledRecordMixin
 from oarepo_references.models import RecordReference, ReferencingRecord
 from oarepo_references.signals import after_reference_update
+from oarepo_references.utils import get_record_object
 
 
 class RecordReferenceAPI(object):
@@ -34,14 +35,16 @@ class RecordReferenceAPI(object):
 
         records_to_update = cls.get_records(ref_url, exact=True)
         for r in records_to_update:
-            rec = r.record
-            rec_cls = obj_or_import_string(rec.class_name.name, Record)
-            rec_obj = rec_cls.get_record(rec.record_uuid)
-            if isinstance(rec_obj, ReferenceEnabledRecordMixin):
-                rec_obj.update_inlined_ref(ref_url, ref_uuid, ref_obj)
-                updated.append(rec_obj)
+            rec = get_record_object(r)
+            if isinstance(rec, ReferenceEnabledRecordMixin):
+                rec.update_inlined_ref(ref_url, ref_uuid, ref_obj)
+                updated.append(rec)
 
         return updated
+
+    @classmethod
+    def reference_changed(cls, old, new):
+        records_to_update = cls.get_records(old, exact=True)
 
     @classmethod
     def get_records(cls, reference, exact=False):
