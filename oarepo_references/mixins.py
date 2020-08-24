@@ -20,3 +20,10 @@ class ReferenceEnabledRecordMixin(object):
             'uuid': uuid,
             'content': ref_obj
         })
+
+    def update_ref(self, old_url, new_url):
+        """Update reference URL to another object."""
+        self.commit(renamed_reference={
+            'old_url': old_url,
+            'new_url': new_url
+        })

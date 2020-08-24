@@ -93,8 +93,8 @@ class ExampleReferenceSchema(Schema):
             data = changes['content']
         return data
 
-    @staticmethod
-    def self_url(data):
+    @classmethod
+    def self_url(cls, data):
         return data.get('links', {}).get('self', None)
 
 

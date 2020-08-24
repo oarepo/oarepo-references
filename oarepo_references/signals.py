@@ -11,10 +11,11 @@ from __future__ import absolute_import, print_function
 
 from blinker import Namespace
 from invenio_db import db
-from invenio_records.signals import after_record_insert
+from invenio_records.signals import after_record_insert, after_record_update
 from oarepo_validate import after_marshmallow_validate
 
 from oarepo_references.models import RecordReference
+from oarepo_references.proxies import current_oarepo_references
 
 _signals = Namespace()
 
@@ -51,3 +52,17 @@ def create_references_record(sender, record, *args, **kwargs):
             RecordReference.create(record, **ref)
 
     db.session.commit()
+
+
+@after_record_update.connect
+def update_references_record(sender, record, *args, **kwargs):
+    """A signal receiver that updates references records on record update."""
+    assert record.oarepo_references is not None, \
+        "oarepo_references needs to be set on a record instance"
+
+    with db.session.begin_nested():
+        for ref in record.oarepo_references:
+            if ref['inline']:
+                # TODO: where should we get the old reference
+                # update_records = current_oarepo_references.get_records(ref['reference'])
+                pass

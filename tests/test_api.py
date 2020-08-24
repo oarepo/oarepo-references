@@ -17,7 +17,8 @@ from tests.test_utils import TestRecord
 class TestOArepoReferencesAPI:
     """Taxonomy API tests."""
 
-    def test_reference_content_changed(self, referenced_records, referencing_records, test_record_data, references_api):
+    def test_reference_content_changed(self, referenced_records, referencing_records,
+                                       test_record_data, references_api):
         """Test reference content change handler."""
         rec = TestRecord.create(test_record_data)
         rec.commit()
@@ -36,7 +37,8 @@ class TestOArepoReferencesAPI:
         )
         assert len(updated) == 3
 
-    def test_reference_changed(self, db, referencing_records, referenced_records, references_api):
+    def test_reference_changed(self, db, referencing_records,
+                               referenced_records, references_api):
         """Test reference name change handler."""
         ref = referenced_records[1]
         updated = references_api.reference_changed(
@@ -44,18 +46,20 @@ class TestOArepoReferencesAPI:
             new='http://localhost/records/new',
         )
         assert len(updated) == 2
+        assert updated[0].dumps().get('$ref') == 'http://localhost/records/new'
+        assert updated[1].dumps().get('reflist')[0].get('$ref') == 'http://localhost/records/new'
 
     def test_get_records(self, db, referencing_records, references_api):
         """Test that we can get reference records referencing a reference."""
         recs = list(references_api.get_records('http://localhost/records/1'))
         assert len(recs) == 3
         assert set(rc.record.record_uuid for rc in recs) == \
-               set([rr.model.id for i, rr in enumerate(referencing_records) if i in [0, 2, 3]])
+            set([rr.model.id for i, rr in enumerate(referencing_records) if i in [0, 2, 3]])
 
         recs = list(references_api.get_records('http://localhost/records/2'))
         assert len(recs) == 2
         assert set(rc.record.record_uuid for rc in recs) == \
-               set([rr.model.id for i, rr in enumerate(referencing_records) if i in [1, 2]])
+            set([rr.model.id for i, rr in enumerate(referencing_records) if i in [1, 2]])
 
         recs = list(references_api.get_records('http://localhost/records/3'))
         assert len(recs) == 0

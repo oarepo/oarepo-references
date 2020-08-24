@@ -23,17 +23,19 @@ from oarepo_references.utils import get_reference_uuid, run_task_on_referrers
 
 class URLReferenceField(ReferenceFieldMixin, URL):
     """URL reference marshmallow field."""
-
     def deserialize(self,
                     value: typing.Any,
                     attr: str = None,
                     data: typing.Mapping[str, typing.Any] = None,
                     **kwargs):
+        changes = self.context.get('renamed_reference', None)
+        if changes and value == changes['old_url']:
+            value = changes['new_url']
+
         output = super(URLReferenceField, self).deserialize(value, attr, data, **kwargs)
         if output is missing:
             return output
 
-        changes = self.context.get('changed_reference', None)
         self.register(output, None, False)
         return output
 
@@ -55,7 +57,8 @@ class TaxonomySchema(Schema):
             data = changes['content']
         return data
 
-    def self_url(self, data):
+    @classmethod
+    def self_url(cls, data):
         return data.get('links').get('self')
 
 

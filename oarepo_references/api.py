@@ -32,7 +32,6 @@ class RecordReferenceAPI(object):
         assert ref_url or ref_uuid, 'Reference URL or UUID must be provided'
 
         updated = []
-
         records_to_update = cls.get_records(ref_url, exact=True)
         for r in records_to_update:
             rec = get_record_object(r)
@@ -44,7 +43,15 @@ class RecordReferenceAPI(object):
 
     @classmethod
     def reference_changed(cls, old, new):
+        updated = []
         records_to_update = cls.get_records(old, exact=True)
+        for r in records_to_update:
+            rec = get_record_object(r)
+            if isinstance(rec, ReferenceEnabledRecordMixin):
+                rec.update_ref(old, new)
+                updated.append(rec)
+
+        return updated
 
     @classmethod
     def get_records(cls, reference, exact=False):
@@ -82,18 +89,6 @@ class RecordReferenceAPI(object):
             RecordIndexer(version_type=cls.indexer_version_type).process_bulk_queue(
                 es_bulk_kwargs={'raise_on_error': True})
             current_search_client.indices.flush()
-
-    @classmethod
-    def update_references_from_record(cls, record):
-        """
-        Gathers all references from a record and updates internal RecordReference table.
-
-        :param record invenio record
-        """
-        with db.session.begin_nested():
-            # Find all entries for record id
-            rr = ReferencingRecord.query.filter_by(record_uuid=record.model.id).one()
-            record.validate()
 
 
 __all__ = (
