@@ -6,16 +6,16 @@
 # it under the terms of the MIT License; see LICENSE file for more details.
 
 """Test utility functions."""
-import pytest
 import typing
+
+import pytest
 from celery import shared_task
 from invenio_records import Record
 from invenio_records_rest.schemas.fields import SanitizedUnicode
-from marshmallow import Schema, post_load, missing
-from marshmallow.fields import URL, Field, Number, Nested, Integer, List
+from marshmallow import Schema, missing, post_load
+from marshmallow.fields import URL, Field, Nested, Integer
 from oarepo_validate import MarshmallowValidatedRecordMixin
 
-from oarepo_references.marshmallow import ContextPassingNestedField
 from oarepo_references.mixins import ReferenceEnabledRecordMixin
 from oarepo_references.schemas.fields.reference import ReferenceFieldMixin
 from oarepo_references.utils import get_reference_uuid, keys_in_dict, \
@@ -27,8 +27,8 @@ class URLReferenceField(ReferenceFieldMixin, URL):
 
     def deserialize(self,
                     value: typing.Any,
-                    attr: str=None,
-                    data: typing.Mapping[str, typing.Any]=None,
+                    attr: str = None,
+                    data: typing.Mapping[str, typing.Any] = None,
                     **kwargs):
         output = super(URLReferenceField, self).deserialize(value, attr, data, **kwargs)
         if output is missing:
@@ -49,10 +49,19 @@ class TaxonomySchema(Schema):
     links = LinksField()
     slug = SanitizedUnicode()
 
+    @post_load
+    def update_inline_changes(self, data, many, **kwargs):
+        changes = self.context.get('changed_reference', None)
+        if changes and changes['url'] == self.self_url(data):
+            data = changes['content']
+        return data
+
+    def self_url(self, data):
+        return data.get('links').get('self')
 
 class NestedTaxonomySchema(Schema):
     """Nested Taxonomy schema."""
-    taxo2 = Nested(TaxonomySchema())
+    taxo2 = Nested(TaxonomySchema(), required=False)
 
 
 class URLReferenceSchema(Schema):
@@ -68,7 +77,7 @@ class TestSchema(Schema):
     taxo1 = Nested(TaxonomySchema(), required=False)
     sub = Nested(NestedTaxonomySchema(), required=False)
     ref = URLReferenceField(data_key='$ref', name='$ref', attribute='$ref', required=False)
-    reflist = ContextPassingNestedField(URLReferenceSchema, many=True, required=False)
+    reflist = Nested(URLReferenceSchema, many=True, required=False)
 
 
 class TestRecord(MarshmallowValidatedRecordMixin,

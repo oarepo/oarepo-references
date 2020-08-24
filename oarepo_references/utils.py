@@ -34,7 +34,7 @@ def run_task_on_referrers(reference, task, success_task=None, error_task=None):
     rec_list = []
 
     for ref in refs:
-        rec = Record.get_record(id_=ref.record_uuid)
+        rec = Record.get_record(id_=ref.record.record_uuid)
         # Add the referencing record to the task signature
         record_task = task.clone(kwargs={'record': rec})
         if error_task:

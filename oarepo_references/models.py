@@ -145,7 +145,10 @@ class RecordReference(db.Model, Timestamp):
             except NoResultFound:
                 cn = ClassName.create(reccls)
 
-            rr = ReferencingRecord.create(record.id, cn)
+            try:
+                rr = ReferencingRecord.query.filter_by(record_uuid=record.id).one()
+            except NoResultFound:
+                rr = ReferencingRecord.create(record.id, cn)
 
             ret = cls(
                 record=rr,

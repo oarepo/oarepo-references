@@ -11,9 +11,9 @@ See https://pytest-invenio.readthedocs.io/ for documentation on which test
 fixtures are available.
 """
 import os
-import uuid
 
 import pytest
+import uuid
 from flask import url_for
 from invenio_app.factory import create_api
 from invenio_db import db as _db

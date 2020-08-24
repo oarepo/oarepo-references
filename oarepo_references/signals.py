@@ -13,7 +13,7 @@ from blinker import Namespace
 from invenio_db import db
 from invenio_records.errors import MissingModelError
 from invenio_records.signals import after_record_insert
-from oarepo_validate import after_marshmallow_validate
+from oarepo_validate import after_marshmallow_validate, before_marshmallow_validate
 
 from oarepo_references.models import RecordReference
 from oarepo_references.proxies import current_oarepo_references
