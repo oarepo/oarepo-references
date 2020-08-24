@@ -40,33 +40,8 @@ from `kwarg['record']`.
 @after_marshmallow_validate.connect
 def set_references_from_context(sender, record, context, result, **kwargs):
     """A signal receiver to set record references from validation context."""
-    record.oarepo_references = context['references']
-
+    record.oarepo_references = context.get('references', [])
     return record
-
-
-def convert_to_ref(in_data, key='$ref'):
-    """
-    Replaces self links with $ref.
-
-    This function checks if the in_data contains links/self
-    and if found replaces the in_data with $ref.
-
-    :param key: key to be used as returned ref
-    :param in_data: the incoming data
-    :return: either the incoming data or element with $ref
-    """
-    self_link = in_data.get('links', {}).get('self', None)
-    if self_link and 'slug' in in_data:
-        return {
-            key: in_data['links']['self']
-        }
-    return in_data
-
-
-def convert_record_refs(sender, record, *args, **kwargs):
-    """A signal receiver to transform self links to $ref."""
-    return transform_dicts_in_data(record, convert_to_ref)
 
 
 @after_record_insert.connect
@@ -75,24 +50,8 @@ def create_references_record(sender, record, *args, **kwargs):
     assert record.oarepo_references is not None,\
         "oarepo_references needs to be set on a record instance"
 
-    with db.session.nested():
+    with db.session.begin_nested():
         for ref in record.oarepo_references:
             RecordReference.create(record, **ref)
 
     db.session.commit()
-
-
-def update_references_record(sender, record, *args, **kwargs):
-    """A signal receiver that updates referencing objects on record update."""
-    current_oarepo_references.update_references_from_record(record)
-    if hasattr(record, 'canonical_url'):
-        ref = record.canonical_url
-    else:
-        raise AttributeError('missing canonical_url on record')
-    current_oarepo_references.reindex_referencing_records(ref=ref, ref_obj=record)
-
-
-def delete_references_record(sender, record, *args, **kwargs):
-    """A signal receiver that removes references on record delete."""
-    # Find all entries for record id and delete it
-    RecordReference.query.filter_by(record_uuid=record.model.id).delete()

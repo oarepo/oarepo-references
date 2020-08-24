@@ -14,6 +14,11 @@ from werkzeug.exceptions import NotFound
 from oarepo_references.proxies import current_oarepo_references
 
 
+def class_import_string(o):
+    """Returns a fully qualified import path of an object class."""
+    return f'{o.__class__.__module__}.{o.__class__.__qualname__}'
+
+
 def run_task_on_referrers(reference, task, success_task=None, error_task=None):
     """
     Queues a task for all referrers referring the given reference.

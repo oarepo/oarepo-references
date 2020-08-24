@@ -9,6 +9,7 @@
 
 from __future__ import absolute_import, print_function
 
+from invenio_base.utils import obj_or_import_string
 from invenio_db import db
 from invenio_indexer.api import RecordIndexer
 from invenio_records import Record
@@ -34,9 +35,12 @@ class RecordReferenceAPI(object):
 
         records_to_update = cls.get_records(ref_url, exact=True)
         for r in records_to_update:
-            if isinstance(r, ReferenceEnabledRecordMixin):
-                r.update_inlined_ref(ref_url, ref_uuid, ref_obj)
-                updated.append(r)
+            rec = r.record
+            rec_cls = obj_or_import_string(rec.class_name.name, Record)
+            rec_obj = rec_cls.get_record(rec.record_uuid)
+            if isinstance(rec_obj, ReferenceEnabledRecordMixin):
+                rec_obj.update_inlined_ref(ref_url, ref_uuid, ref_obj)
+                updated.append(rec_obj)
 
         return updated
 

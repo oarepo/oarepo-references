@@ -15,4 +15,8 @@ class ReferenceEnabledRecordMixin(object):
 
     def update_inlined_ref(self, url, uuid, ref_obj):
         """Update inlined reference content in a record."""
-        self.commit(**ref_obj)
+        self.commit(changed_reference={
+            'url': url,
+            'uuid': uuid,
+            'content': ref_obj
+        })

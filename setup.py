@@ -14,9 +14,10 @@ from setuptools import find_packages, setup
 readme = open('README.md').read()
 history = open('CHANGES.rst').read()
 
-OAREPO_VERSION = os.environ.get('OAREPO_VERSION', '3.2.2')
+OAREPO_VERSION = os.environ.get('OAREPO_VERSION', '3.2.1')
 
 tests_require = [
+    'uuid'
 ]
 
 extras_require = {
@@ -26,9 +27,11 @@ extras_require = {
     'tests': [
         'oarepo[tests]~={version}'.format(version=OAREPO_VERSION),
         'flask-taxonomies>=6.6.8',
+        *tests_require
     ],
     'tests-es7': [
-        'oarepo[tests-es7,taxonomies]~={version}'.format(version=OAREPO_VERSION)
+        'oarepo[tests-es7,taxonomies]~={version}'.format(version=OAREPO_VERSION),
+        *tests_require
     ],
 }
 

@@ -18,15 +18,11 @@ from flask import url_for
 from invenio_app.factory import create_api
 from invenio_db import db as _db
 from invenio_pidstore.providers.recordid import RecordIdProvider
-from invenio_records import Record
-from invenio_records_rest.schemas.fields import SanitizedUnicode
-from marshmallow import Schema
-from marshmallow.fields import URL, Number, Field, Nested
 from sqlalchemy_utils import database_exists, create_database
 
 from oarepo_references.api import RecordReferenceAPI
 from oarepo_references.models import ClassName
-from oarepo_references.schemas.fields.reference import ReferenceFieldMixin
+from tests.test_utils import TestRecord
 
 
 @pytest.fixture(scope="module")
@@ -79,7 +75,7 @@ def db(app):
     """Returns fresh db."""
     with app.app_context():
         if not database_exists(str(_db.engine.url)) and \
-           app.config['SQLALCHEMY_DATABASE_URI'] != 'sqlite://':
+          app.config['SQLALCHEMY_DATABASE_URI'] != 'sqlite://':
             create_database(_db.engine.url)
         _db.create_all()
 
@@ -103,7 +99,7 @@ def referenced_records(db):
             object_uuid=record_uuid,
         )
         rr["pid"] = provider.pid.pid_value
-        referenced_records.append(Record.create(rr, id_=record_uuid))
+        referenced_records.append(TestRecord.create(rr, id_=record_uuid))
 
     db.session.commit()
     return referenced_records
@@ -118,7 +114,7 @@ def get_ref_url(pid):
 @pytest.fixture
 def class_names(db):
     class_names = [
-        ClassName.create(name=str(Record.__class__))
+        ClassName.create(name=str(TestRecord.__class__))
     ]
 
     db.session.commit()
@@ -129,19 +125,19 @@ def class_names(db):
 def referencing_records(db, referenced_records):
     """Create sample records with references to others."""
     referencing_records = [
-        Record.create({
+        TestRecord.create({
             'title': 'c',
             '$ref': get_ref_url(referenced_records[0]['pid'])
         }),
-        Record.create({
+        TestRecord.create({
             'title': 'd',
             '$ref': get_ref_url(referenced_records[1]['pid'])
         }),
-        Record.create({'title': 'e', 'reflist': [
+        TestRecord.create({'title': 'e', 'reflist': [
             {'$ref': get_ref_url(referenced_records[1]['pid'])},
             {'$ref': get_ref_url(referenced_records[0]['pid'])}
         ]}),
-        Record.create({'title': 'f', 'reflist': [
+        TestRecord.create({'title': 'f', 'reflist': [
             {'title': 'f', '$ref': get_ref_url(referenced_records[0]['pid'])},
         ]})
     ]

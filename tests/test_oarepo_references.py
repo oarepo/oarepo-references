@@ -14,9 +14,7 @@ from invenio_records.signals import after_record_insert, after_record_update, \
     before_record_update
 
 from oarepo_references import OARepoReferences
-from oarepo_references.signals import convert_record_refs, \
-    create_references_record, delete_references_record, \
-    update_references_record
+from oarepo_references.signals import create_references_record
 
 
 def test_version():
@@ -41,6 +39,6 @@ def test_init():
 def test_signals():
     """Test if the signals are properly registered."""
     assert after_record_insert.has_receivers_for(create_references_record)
-    assert before_record_update.has_receivers_for(convert_record_refs)
-    assert after_record_update.has_receivers_for(update_references_record)
-    assert after_record_update.has_receivers_for(delete_references_record)
+    # assert before_record_update.has_receivers_for(convert_record_refs)
+    # assert after_record_update.has_receivers_for(update_references_record)
+    # assert after_record_update.has_receivers_for(delete_references_record)

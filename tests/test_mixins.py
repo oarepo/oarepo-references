@@ -23,5 +23,5 @@ class TestOArepoMixins:
             'self': 'http://localhost/api/taxonomies/requestors/a/b/',
         }, 'slug': 'b', 'title': 'new title'}
 
-        rec.update_inlined_refs('http://localhost/api/taxonomies/requestors/a/b/', None, ref)
+        rec.update_inlined_ref('http://localhost/api/taxonomies/requestors/a/b/', None, ref)
         assert rec['taxo1']['title'] == 'new title'

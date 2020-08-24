@@ -14,9 +14,7 @@ from invenio_records.errors import MissingModelError
 from invenio_records.models import RecordMetadata
 
 from oarepo_references.models import RecordReference
-from oarepo_references.signals import convert_record_refs, convert_to_ref, \
-    create_references_record, delete_references_record, \
-    update_references_record, set_references_from_context
+from oarepo_references.signals import create_references_record, set_references_from_context
 
 
 def test_set_references_from_context(referencing_records, referenced_records):
@@ -34,50 +32,6 @@ def test_set_references_from_context(referencing_records, referenced_records):
 
     rec = set_references_from_context(rec, rec, ctx, True)
     assert rec.oarepo_references == ctx['references']
-
-
-def test_convert_to_ref():
-    """Test if taxonomies are converted to refs."""
-    test_cases = [
-        ({
-             'links': {
-                 'parent': 'http://localhost/api/taxonomies/requestors/a/',
-                 'parent_tree': 'http://localhost/api/taxonomies/requestors/a/?drilldown=True',
-                 'self': 'http://localhost/api/taxonomies/requestors/a/b/',
-                 'tree': 'http://localhost/api/taxonomies/requestors/a/b/?drilldown=True'
-             },
-             'slug': 'b'
-         }, {
-             '$ref': 'http://localhost/api/taxonomies/requestors/a/b/',
-         })
-    ]
-    for case in test_cases:
-        in_data, expected = case
-        res = convert_to_ref(in_data)
-        assert res == expected
-
-
-def test_convert_record_refs(test_record_data):
-    """Test if any taxonomy references in record are converted to refs."""
-    test_cases = [
-        (test_record_data,
-         {
-             'pid': 999,
-             'title': 'rec1',
-             'taxo1': {
-                 '$ref': 'http://localhost/api/taxonomies/requestors/a/b/',
-             },
-             'sub': {
-                 'taxo2': {
-                     '$ref': 'http://localhost/api/taxonomies/requestors/a/c/',
-                 }
-             }
-         }),
-    ]
-    for case in test_cases:
-        record, expected = case
-        res = convert_record_refs(None, record)
-        assert res == expected
 
 
 def test_create_references_record(db, referencing_records, test_record_data):

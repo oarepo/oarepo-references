@@ -24,12 +24,12 @@ class TestOArepoReferencesFields:
 
         rf.register(test_record_data['taxo1']['links']['self'], None, True)
         assert len(rf.context['references']) == 1
-        assert rf.context['references'][0]['reference_url'] == \
+        assert rf.context['references'][0]['reference'] == \
             test_record_data['taxo1']['links']['self']
 
     def test_marshmallow_load(self, test_record_data):
         """Test marshmallow schema load."""
         schema = TestSchema()
-        res = schema.load(test_record_data)
+        res = schema.load(test_record_data, partial=True)
 
         assert res == test_record_data

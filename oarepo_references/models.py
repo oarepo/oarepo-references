@@ -20,6 +20,8 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy_utils.types import UUIDType
 
+from oarepo_references.utils import class_import_string
+
 
 class ClassName(db.Model, Timestamp):
     """
@@ -137,7 +139,7 @@ class RecordReference(db.Model, Timestamp):
                 .filter(RecordReference.reference == reference).count() > 0:
             raise IntegrityError('Error creating reference record - already exists', '', [], None)
         with db.session.begin_nested():
-            reccls = str(record.__class__)
+            reccls = str(class_import_string(record))
             try:
                 cn = ClassName.query.filter_by(name=reccls).one()
             except NoResultFound:

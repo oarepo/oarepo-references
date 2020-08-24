@@ -7,18 +7,21 @@
 
 """Test API class methods."""
 import pytest
-from invenio_records import Record
 
 from oarepo_references.signals import after_reference_update
 from tests.conftest import get_ref_url
+from tests.test_utils import TestRecord
 
 
 @pytest.mark.usefixtures("db")
 class TestOArepoReferencesAPI:
     """Taxonomy API tests."""
 
-    def test_reference_content_changed(self, referenced_records, references_api):
+    def test_reference_content_changed(self, referenced_records, referencing_records, test_record_data, references_api):
         """Test reference content change handler."""
+        rec = TestRecord.create(test_record_data)
+        rec.commit()
+
         ref = referenced_records[0]
         ref['title'] = 'change'
         ref.commit()
@@ -31,7 +34,6 @@ class TestOArepoReferencesAPI:
             ref_url='http://localhost/records/1',
             ref_uuid=ref.id
         )
-
         assert len(updated) == 3
 
     def test_reference_changed(self, db, referencing_records, referenced_records, references_api):
