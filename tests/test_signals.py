@@ -7,13 +7,12 @@
 
 """Test signal handler functions."""
 import pytest
-import uuid
-from invenio_records import Record
-from invenio_records.errors import MissingModelError
-from invenio_records.models import RecordMetadata
+from sqlalchemy.exc import IntegrityError
 
 from oarepo_references.models import RecordReference, ReferencingRecord
-from oarepo_references.signals import create_references_record, set_references_from_context
+from oarepo_references.signals import create_references_record,\
+    set_references_from_context, update_references_record
+from tests.test_utils import TestRecord, TaxonomyRecord
 
 
 def test_set_references_from_context(referencing_records, referenced_records):
@@ -41,44 +40,54 @@ def test_set_references_from_context(referencing_records, referenced_records):
 
 def test_create_references_record(db, referencing_records, test_record_data):
     """Test that a reference record is created."""
-    rd = convert_record_refs(None, test_record_data)
-    new_rec = Record(rd)
+    new_rec = TestRecord(test_record_data)
 
     # Test calling on record without properly initialized model yet
-    with pytest.raises(MissingModelError):
+    with pytest.raises(AttributeError):
         create_references_record(new_rec, new_rec)
 
-    id = uuid.uuid4()
-    new_rec.model = RecordMetadata(id=id, json=rd)
-
     # Test create record references for new record
+    new_rec.oarepo_references = [
+        {
+            'reference': 'http://localhost/api/taxonomies/requestors/a/b/1',
+            'reference_uuid': None,
+            'inline': False
+        },
+        {
+            'reference': 'http://localhost/api/taxonomies/requestors/a/c/2',
+            'reference_uuid': None,
+            'inline': False
+        }
+    ]
     create_references_record(new_rec, new_rec)
     db.session.commit()
 
-    rr = RecordReference.query.filter(RecordReference.record_uuid == id).all()
-    assert len(rr) == 2
-    assert set([r.reference for r in rr]) == \
-        {'http://localhost/api/taxonomies/requestors/a/b/',
-         'http://localhost/api/taxonomies/requestors/a/c/'}
+    rr = ReferencingRecord.query.filter(ReferencingRecord.record_uuid == new_rec.id).one()
+    assert len(rr.references) == 2
+    assert set([r.reference for r in rr.references]) == \
+        {'http://localhost/api/taxonomies/requestors/a/b/1',
+         'http://localhost/api/taxonomies/requestors/a/c/2'}
 
     # Test calling create on already existing record uuid fails
-    with pytest.raises(FileExistsError):
+    with pytest.raises(IntegrityError):
         create_references_record(referencing_records[0], referencing_records[0], throw=True)
 
 
-def test_update_references_record(db, referencing_records, test_record_data):
+def test_update_references_record(db, referenced_records, referencing_records, test_record_data):
     """Test that we can update an existing reference record."""
-    rec = referencing_records[0]
-    rec['$ref'] = 'http://localhost/records/3'
-    rec['title'] = 'changed'
-    with pytest.raises(AttributeError):
-        update_references_record(rec, rec)
+    rr = TestRecord.create(test_record_data)
+    tr = TaxonomyRecord.create({
+        'links': {
+            'self': 'http://localhost/api/taxonomies/requestors/a/c/',
+        },
+        'slug': 'c'
+    })
+    tr['title'] = 'change'
+    tr.commit()
 
-    rec.canonical_url = 'http://localhost/records/c'
-
-    update_references_record(rec, rec)
-    rr = RecordReference.query.filter(RecordReference.record_uuid == rec.model.id).all()
-    assert rr[0].reference == 'http://localhost/records/3'
+    update_references_record(tr, tr)
+    updated = TestRecord.get_record(rr.id)
+    assert updated.dumps().get('sub').get('taxo2').get('title') == 'change'
 
 
 def test_delete_references_record(referencing_records):

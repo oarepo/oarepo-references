@@ -9,7 +9,7 @@
 import pytest
 
 from oarepo_references.signals import after_reference_update
-from tests.conftest import get_ref_url
+from tests.conftest import get_ref_url, get_pid
 from tests.test_utils import TestRecord
 
 
@@ -20,7 +20,9 @@ class TestOArepoReferencesAPI:
     def test_reference_content_changed(self, referenced_records, referencing_records,
                                        test_record_data, references_api):
         """Test reference content change handler."""
-        rec = TestRecord.create(test_record_data)
+        ruuid, pid = get_pid()
+        test_record_data['pid'] = pid
+        rec = TestRecord.create(test_record_data, id_=ruuid)
         rec.commit()
 
         ref = referenced_records[0]

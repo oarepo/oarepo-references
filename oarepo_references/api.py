@@ -9,14 +9,13 @@
 
 from __future__ import absolute_import, print_function
 
-from invenio_base.utils import obj_or_import_string
 from invenio_db import db
 from invenio_indexer.api import RecordIndexer
 from invenio_records import Record
 from invenio_search import current_search_client
 
 from oarepo_references.mixins import ReferenceEnabledRecordMixin
-from oarepo_references.models import RecordReference, ReferencingRecord
+from oarepo_references.models import RecordReference
 from oarepo_references.signals import after_reference_update
 from oarepo_references.utils import get_record_object
 

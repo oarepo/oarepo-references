@@ -46,7 +46,7 @@ from __future__ import absolute_import, print_function
 import os
 import typing
 
-from flask import Flask
+from flask import Flask, url_for
 from flask_babelex import Babel
 from invenio_records import Record
 from invenio_records_rest.schemas.fields import SanitizedUnicode
@@ -105,6 +105,11 @@ class ExampleRecord(MarshmallowValidatedRecordMixin,
     MARSHMALLOW_SCHEMA = ExampleReferenceSchema
     VALIDATE_MARSHMALLOW = True
     VALIDATE_PATCH = True
+
+    @property
+    def canonical_url(self):
+        return url_for('invenio_records_rest.recid_item',
+                       pid_value=self['pid'], _external=True)
 
 
 # Create Flask application

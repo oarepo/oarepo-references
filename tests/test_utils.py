@@ -10,8 +10,9 @@ import typing
 
 import pytest
 from celery import shared_task
+from flask import url_for
 from invenio_records import Record
-from invenio_records_rest.schemas.fields import SanitizedUnicode
+from invenio_records_rest.schemas.fields import SanitizedUnicode, PersistentIdentifier
 from marshmallow import Schema, missing, post_load
 from marshmallow.fields import URL, Field, Nested, Integer
 from oarepo_validate import MarshmallowValidatedRecordMixin
@@ -23,6 +24,7 @@ from oarepo_references.utils import get_reference_uuid, run_task_on_referrers
 
 class URLReferenceField(ReferenceFieldMixin, URL):
     """URL reference marshmallow field."""
+
     def deserialize(self,
                     value: typing.Any,
                     attr: str = None,
@@ -49,6 +51,7 @@ class TaxonomySchema(Schema):
     """Taxonomy schema."""
     links = LinksField()
     slug = SanitizedUnicode()
+    title = SanitizedUnicode()
 
     @post_load
     def update_inline_changes(self, data, many, **kwargs):
@@ -90,6 +93,24 @@ class TestRecord(MarshmallowValidatedRecordMixin,
     MARSHMALLOW_SCHEMA = TestSchema
     VALIDATE_MARSHMALLOW = True
     VALIDATE_PATCH = True
+
+    @property
+    def canonical_url(self):
+        return url_for('invenio_records_rest.recid_item',
+                       pid_value=self['pid'], _external=True)
+
+
+class TaxonomyRecord(MarshmallowValidatedRecordMixin,
+                     ReferenceEnabledRecordMixin,
+                     Record):
+    """Record for testing inlined taxonomies."""
+    MARSHMALLOW_SCHEMA = TaxonomySchema
+    VALIDATE_MARSHMALLOW = True
+    VALIDATE_PATCH = True
+
+    @property
+    def canonical_url(self):
+        return self['links']['self']
 
 
 @pytest.mark.celery(result_backend='redis://')

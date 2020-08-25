@@ -86,6 +86,15 @@ def db(app):
     _db.drop_all()
 
 
+def get_pid():
+    record_uuid = uuid.uuid4()
+    provider = RecordIdProvider.create(
+        object_type='rec',
+        object_uuid=record_uuid,
+    )
+    return record_uuid, provider.pid.pid_value
+
+
 @pytest.fixture
 def referenced_records(db):
     """Create a list of records to be referenced by other records."""
@@ -93,13 +102,9 @@ def referenced_records(db):
     referenced_records = []
 
     for rr in rrdata:
-        record_uuid = uuid.uuid4()
-        provider = RecordIdProvider.create(
-            object_type='rec',
-            object_uuid=record_uuid,
-        )
-        rr["pid"] = provider.pid.pid_value
-        referenced_records.append(TestRecord.create(rr, id_=record_uuid))
+        ruuid, pid = get_pid()
+        rr['pid'] = pid
+        referenced_records.append(TestRecord.create(rr, id_=ruuid))
 
     db.session.commit()
     return referenced_records
@@ -127,19 +132,25 @@ def referencing_records(db, referenced_records):
     referencing_records = [
         TestRecord.create({
             'title': 'c',
+            'pid': get_pid()[1],
             '$ref': get_ref_url(referenced_records[0]['pid'])
         }),
         TestRecord.create({
             'title': 'd',
+            'pid': get_pid()[1],
             '$ref': get_ref_url(referenced_records[1]['pid'])
         }),
-        TestRecord.create({'title': 'e', 'reflist': [
-            {'$ref': get_ref_url(referenced_records[1]['pid'])},
-            {'$ref': get_ref_url(referenced_records[0]['pid'])}
-        ]}),
-        TestRecord.create({'title': 'f', 'reflist': [
-            {'title': 'f', '$ref': get_ref_url(referenced_records[0]['pid'])},
-        ]})
+        TestRecord.create({'title': 'e',
+                           'pid': get_pid()[1],
+                           'reflist': [
+                               {'$ref': get_ref_url(referenced_records[1]['pid'])},
+                               {'$ref': get_ref_url(referenced_records[0]['pid'])}
+                           ]}),
+        TestRecord.create({'title': 'f',
+                           'pid': get_pid()[1],
+                           'reflist': [
+                               {'title': 'f', '$ref': get_ref_url(referenced_records[0]['pid'])},
+                           ]})
     ]
     db.session.commit()
 

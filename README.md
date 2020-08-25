@@ -14,6 +14,19 @@ To use this module in your Invenio application, run the following in your virtua
     pip install oarepo-references
 ```
 
+## Prerequisites
+
+This module expects a `canonical_url` field present on your Record model. This field
+should contain a full canonical url reference to the Record instance, e.g.
+
+```python
+class Record(FilesRecord):
+    @property
+    def canonical_url(self):
+        return url_for('invenio_records_rest.recid_item',
+                       pid_value=self['pid'], _external=True)
+```
+
 ## Mixins
 
 

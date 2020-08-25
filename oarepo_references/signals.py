@@ -57,12 +57,8 @@ def create_references_record(sender, record, *args, **kwargs):
 @after_record_update.connect
 def update_references_record(sender, record, *args, **kwargs):
     """A signal receiver that updates references records on record update."""
-    assert record.oarepo_references is not None, \
-        "oarepo_references needs to be set on a record instance"
+    assert record.canonical_url is not None, \
+        'oarepo_references requires the canonical_url property on a record instance'
 
-    with db.session.begin_nested():
-        for ref in record.oarepo_references:
-            if ref['inline']:
-                # TODO: where should we get the old reference
-                # update_records = current_oarepo_references.get_records(ref['reference'])
-                pass
+    referencing = current_oarepo_references.get_records(record.canonical_url)
+    print(referencing)
