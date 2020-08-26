@@ -14,8 +14,10 @@ from invenio_db import db
 from invenio_records.signals import after_record_insert, after_record_update
 from oarepo_validate import after_marshmallow_validate
 
+from oarepo_references.mixins import ReferenceEnabledRecordMixin
 from oarepo_references.models import RecordReference
 from oarepo_references.proxies import current_oarepo_references
+from oarepo_references.utils import get_record_object
 
 _signals = Namespace()
 
@@ -61,4 +63,7 @@ def update_references_record(sender, record, *args, **kwargs):
         'oarepo_references requires the canonical_url property on a record instance'
 
     referencing = current_oarepo_references.get_records(record.canonical_url)
-    print(referencing)
+    for r in referencing:
+        rec = get_record_object(r)
+        if isinstance(rec, ReferenceEnabledRecordMixin):
+            rec.update_inlined_ref(record.canonical_url, record.id, record)

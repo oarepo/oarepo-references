@@ -9,8 +9,8 @@
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from oarepo_references.models import RecordReference, ReferencingRecord
-from oarepo_references.signals import create_references_record,\
+from oarepo_references.models import ReferencingRecord
+from oarepo_references.signals import create_references_record, \
     set_references_from_context, update_references_record
 from tests.test_utils import TestRecord, TaxonomyRecord
 
@@ -76,6 +76,7 @@ def test_create_references_record(db, referencing_records, test_record_data):
 def test_update_references_record(db, referenced_records, referencing_records, test_record_data):
     """Test that we can update an existing reference record."""
     rr = TestRecord.create(test_record_data)
+    rr.commit()
     tr = TaxonomyRecord.create({
         'links': {
             'self': 'http://localhost/api/taxonomies/requestors/a/c/',

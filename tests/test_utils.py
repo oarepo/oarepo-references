@@ -47,7 +47,7 @@ class LinksField(Field):
     self = URLReferenceField()
 
 
-class TaxonomySchema(Schema):
+class TaxonomySchema(ReferenceFieldMixin, Schema):
     """Taxonomy schema."""
     links = LinksField()
     slug = SanitizedUnicode()
@@ -58,6 +58,8 @@ class TaxonomySchema(Schema):
         changes = self.context.get('changed_reference', None)
         if changes and changes['url'] == self.self_url(data):
             data = changes['content']
+
+        self.register(self.self_url(data), None, True)
         return data
 
     @classmethod
