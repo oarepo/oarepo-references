@@ -34,7 +34,7 @@ class TestOArepoReferencesAPI:
 
         updated = references_api.reference_content_changed(
             ref,
-            ref_url='http://localhost/records/1',
+            ref_url='http://localhost/api/records/1',
             ref_uuid=ref.id
         )
         assert len(updated) == 3
@@ -44,32 +44,32 @@ class TestOArepoReferencesAPI:
         """Test reference name change handler."""
         ref = referenced_records[1]
         updated = references_api.reference_changed(
-            old='http://localhost/records/2',
-            new='http://localhost/records/new',
+            old='http://localhost/api/records/2',
+            new='http://localhost/api/records/new',
         )
         assert len(updated) == 2
-        assert updated[0].dumps().get('$ref') == 'http://localhost/records/new'
-        assert updated[1].dumps().get('reflist')[0].get('$ref') == 'http://localhost/records/new'
+        assert updated[0].dumps().get('$ref') == 'http://localhost/api/records/new'
+        assert updated[1].dumps().get('reflist')[0].get('$ref') == 'http://localhost/api/records/new'
 
     def test_get_records(self, db, referencing_records, references_api):
         """Test that we can get reference records referencing a reference."""
-        recs = list(references_api.get_records('http://localhost/records/1'))
+        recs = list(references_api.get_records('http://localhost/api/records/1'))
         assert len(recs) == 3
         assert set(rc.record.record_uuid for rc in recs) == \
             set([rr.model.id for i, rr in enumerate(referencing_records) if i in [0, 2, 3]])
 
-        recs = list(references_api.get_records('http://localhost/records/2'))
+        recs = list(references_api.get_records('http://localhost/api/records/2'))
         assert len(recs) == 2
         assert set(rc.record.record_uuid for rc in recs) == \
             set([rr.model.id for i, rr in enumerate(referencing_records) if i in [1, 2]])
 
-        recs = list(references_api.get_records('http://localhost/records/3'))
+        recs = list(references_api.get_records('http://localhost/api/records/3'))
         assert len(recs) == 0
 
-        recs = list(references_api.get_records('http://localhost/records/'))
+        recs = list(references_api.get_records('http://localhost/api/records/'))
         assert len(recs) == 5
 
-        recs = list(references_api.get_records('http://localhost/records/', exact=True))
+        recs = list(references_api.get_records('http://localhost/api/records/', exact=True))
         assert len(recs) == 0
 
     def test_reindex_referencing_records(self,

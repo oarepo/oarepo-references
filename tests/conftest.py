@@ -57,7 +57,7 @@ def app_config(app_config):
             'SQLALCHEMY_DATABASE_URI',
             'sqlite:///:memory:'),
         SERVER_NAME='localhost',
-        CELERY_ALWAYS_EAGER=True
+        CELERY_TASK_ALWAYS_EAGER=True
     )
     app_config['PIDSTORE_RECID_FIELD'] = 'pid'
     app_config['RECORDS_REST_ENDPOINTS'] = dict(

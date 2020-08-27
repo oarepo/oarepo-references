@@ -106,7 +106,7 @@ def test_run_task_on_referrers(referencing_records,
                                celery_app,
                                celery_includes):
     """Test that tasks are launched on referring records."""
-    referred = 'http://localhost/records/1'
+    referred = 'http://localhost/api/records/1'
     referers = [
         referencing_records[0],
         referencing_records[2],
@@ -161,11 +161,11 @@ def test_get_reference_uuid(referencing_records, referenced_records):
     assert reference == referenced_records[0].id
 
     # Test 404 reference URL returns None
-    reference = get_reference_uuid('http://localhost/records/10')
+    reference = get_reference_uuid('http://localhost/api/records/10')
     assert reference is None
 
     # Test invalid url returns None
-    reference = get_reference_uuid('http://otherhost/records/1')
+    reference = get_reference_uuid('http://otherhost/api/records/1')
     assert reference is None
-    reference = get_reference_uuid('hhtp//localhost/records/1')
+    reference = get_reference_uuid('hhtp//localhost/api/records/1')
     assert reference is None
