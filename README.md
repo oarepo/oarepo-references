@@ -80,42 +80,49 @@ To enable reference tracking on your data model objects, you will need to
 do the following:
 
   - Tell Marshmallow, which fields of your marshmallow schema contain references
-     by inheriting `ReferenceByLinkFieldMixin`:
+    by link by inheriting `ReferenceByLinkFieldMixin`:
 
 ```
 class URLReferenceField(ReferenceByLinkFieldMixin, URL):
     """URL reference marshmallow field."""
 ```
 
-  - If the field holds *inlined* reference, use more generic `ReferenceFieldMixin`
-    and override the `deserialize` method like this:
+  - If your Marshmallow Scheme holds *inlined* references, you
+    will need to define a custom nested schema for inlined reference
+    contents, that defines `register_reference` and `update_inline`
+    handlers for marshmallow `@post_load` signal, like this:
 
 ```
-def deserialize(self,
-                value: typing.Any,
-                attr: str = None,
-                data: typing.Mapping[str, typing.Any] = None,
-                **kwargs):
+class InlinedReferenceSchema(ReferenceFieldMixin, Schema):
+    """Inlined reference schema."""
+    class Meta:
+        unknown = INCLUDE
+
+    @post_load
+    def update_inline_changes(self, data, many, **kwargs):
         changes = self.context.get('changed_reference', None)
-        # TODO: check if changes['url'] or changes['uuid']
-        # refers to the current value and if so, update it
-        # with changes['content']
+        if changes and changes['url'] == self.self_url(data):
+            data = changes['content']
 
-        output = super(ReferenceByLinkFieldMixin, self).deserialize(value, attr, data, **kwargs)
-        if output is missing:
-            return output
+        return data
 
-        # TODO: determine canonical_url or object uuid from the output
-        # to be used for reference registration
-        self.register(output, None, False)
-        return output
+    @post_load
+    def register_reference(self, data, many, **kwargs):
+        url = self.self_url(data)
+        self.register(url)
+        return data
+
+    @classmethod
+    def self_url(cls, data):
+        return data.get('links').get('self')
 ```
 
   - Use the reference-enabled field in your Marshmallow schema:
 ```
-class ExampleReferenceSchema(Schema):
-    """Link to other object schema."""
+class ExampleReferencesSchema(Schema):
+    """Reference to other objects schema."""
     link = URLReferenceField()
+    inlined = Nested(InlinedReferenceSchema)
 ```
 
   - Inherit your Record model from the `ReferenceEnabledRecordMixin` and `MarshmallowValidatedRecordMixin`.
@@ -127,7 +134,7 @@ class ExampleRecord(MarshmallowValidatedRecordMixin,
                     ReferenceEnabledRecordMixin,
                     Record):
     """References enabled example record class."""
-    MARSHMALLOW_SCHEMA = ExampleReferenceSchema
+    MARSHMALLOW_SCHEMA = ExampleReferencesSchema
     VALIDATE_MARSHMALLOW = True
     VALIDATE_PATCH = True
 

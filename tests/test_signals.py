@@ -8,10 +8,13 @@
 """Test signal handler functions."""
 import pytest
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm.exc import NoResultFound
 
-from oarepo_references.models import ReferencingRecord
+from oarepo_references.models import ReferencingRecord, RecordReference
+from oarepo_references.proxies import current_oarepo_references
 from oarepo_references.signals import create_references_record, \
-    set_references_from_context, update_references_record
+    set_references_from_context, delete_references_record
+from tests.conftest import get_pid
 from tests.test_utils import TestRecord, TaxonomyRecord
 
 
@@ -64,40 +67,56 @@ def test_create_references_record(db, referencing_records, test_record_data):
 
     rr = ReferencingRecord.query.filter(ReferencingRecord.record_uuid == new_rec.id).one()
     assert len(rr.references) == 2
-    assert set([r.reference for r in rr.references]) == \
-        {'http://localhost/api/taxonomies/requestors/a/b/1',
-         'http://localhost/api/taxonomies/requestors/a/c/2'}
+    assert set([r.reference for r in rr.references]) == {
+        'http://localhost/api/taxonomies/requestors/a/b/1',
+        'http://localhost/api/taxonomies/requestors/a/c/2'
+    }
 
     # Test calling create on already existing record uuid fails
     with pytest.raises(IntegrityError):
         create_references_record(referencing_records[0], referencing_records[0], throw=True)
 
 
-def test_update_references_record(db, referenced_records, referencing_records, test_record_data):
+def test_update_references_record(db, test_record_data):
     """Test that we can update an existing reference record."""
     rr = TestRecord.create(test_record_data)
     rr.commit()
-    tr = TaxonomyRecord.create({
+    content = {
         'links': {
             'self': 'http://localhost/api/taxonomies/requestors/a/c/',
         },
+        'pid': get_pid()[1],
         'slug': 'c'
-    })
-    tr['title'] = 'change'
+    }
+    tr = TaxonomyRecord.create(content)
     tr.commit()
 
-    update_references_record(tr, tr)
+    content['title'] = 'change'
+    content.pop('pid')
+
+    current_oarepo_references.reference_content_changed(
+        content,
+        'http://localhost/api/taxonomies/requestors/a/c/')
+
     updated = TestRecord.get_record(rr.id)
     assert updated.dumps().get('sub').get('taxo2').get('title') == 'change'
+
+    taxoupdated = TaxonomyRecord.get_record(tr.id)
+    assert taxoupdated.dumps().get('title') == 'change'
 
 
 def test_delete_references_record(referencing_records):
     """Test that we can delete references record."""
     deleted = referencing_records[2]
 
-    rr = ReferencingRecord.query.filter(ReferencingRecord.record_uuid == deleted.model.id).all()
-    assert len(rr) == 2
+    rr = ReferencingRecord.query.filter(ReferencingRecord.record_uuid == deleted.model.id).one()
+    refs = RecordReference.query.filter(RecordReference.record_id == rr.id).all()
+    assert rr is not None
+    assert len(refs) == 2
 
     delete_references_record(deleted, deleted)
-    rr = ReferencingRecord.query.filter(ReferencingRecord.record_uuid == deleted.model.id).all()
-    assert len(rr) == 0
+    with pytest.raises(NoResultFound):
+        ReferencingRecord.query.filter(ReferencingRecord.record_uuid == deleted.model.id).one()
+
+    refs = RecordReference.query.filter(RecordReference.record_id == rr.id).all()
+    assert len(refs) == 0

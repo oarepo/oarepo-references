@@ -50,47 +50,38 @@ from flask import Flask, url_for
 from flask_babelex import Babel
 from invenio_records import Record
 from invenio_records_rest.schemas.fields import SanitizedUnicode
-from marshmallow import Schema, missing, post_load
+from marshmallow import Schema, missing, post_load, INCLUDE
 from marshmallow.fields import URL, Field
 from oarepo_validate import MarshmallowValidatedRecordMixin
 
 from oarepo_references import OARepoReferences
-from oarepo_references.mixins import ReferenceEnabledRecordMixin
-from oarepo_references.schemas.fields.reference import ReferenceFieldMixin
+from oarepo_references.mixins import ReferenceEnabledRecordMixin, ReferenceByLinkFieldMixin
 
 
-class ExampleURLReferenceField(ReferenceFieldMixin, URL):
+class ExampleURLReferenceField(ReferenceByLinkFieldMixin, URL):
     """URL reference marshmallow field."""
-
-    def deserialize(self,
-                    value: typing.Any,
-                    attr: str = None,
-                    data: typing.Mapping[str, typing.Any] = None,
-                    **kwargs):
-        output = super(ExampleURLReferenceField, self).deserialize(value, attr, data, **kwargs)
-        if output is missing:
-            return output
-        changes = self.context.get('changed_reference', None)
-        # TODO: update value if the changes are related to this instance
-        self.register(output, None, False)
-        return output
-
 
 class ExampleLinksField(Field):
     """Taxonomy links field."""
     self = ExampleURLReferenceField()
 
 
-class ExampleReferenceSchema(Schema):
+class ExampleInlineReferenceSchema(Schema):
     """Taxonomy schema."""
-    links = ExampleLinksField()
-    slug = SanitizedUnicode()
+    class Meta:
+        unknown = INCLUDE
 
     @post_load
     def update_inline_changes(self, data, many, **kwargs):
         changes = self.context.get('changed_reference', None)
         if changes and changes['url'] == self.self_url(data):
             data = changes['content']
+        return data
+
+    @post_load
+    def register_reference(self, data, many, **kwargs):
+        url = self.self_url(data)
+        self.register(url)
         return data
 
     @classmethod
@@ -102,7 +93,7 @@ class ExampleRecord(MarshmallowValidatedRecordMixin,
                     ReferenceEnabledRecordMixin,
                     Record):
     """References enabled example record class."""
-    MARSHMALLOW_SCHEMA = ExampleReferenceSchema
+    MARSHMALLOW_SCHEMA = ExampleInlineReferenceSchema
     VALIDATE_MARSHMALLOW = True
     VALIDATE_PATCH = True
 

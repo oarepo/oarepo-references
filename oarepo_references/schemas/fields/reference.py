@@ -11,7 +11,7 @@
 class ReferenceFieldMixin(object):
     """Field Mixin representing a reference to another object."""
 
-    def register(self, reference, reference_uuid, inline=True):
+    def register(self, reference, reference_uuid=None, inline=True):
         """Registers a reference to the validation context."""
         refspec = dict(
             reference=reference,

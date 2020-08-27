@@ -46,5 +46,5 @@ class ReferenceByLinkFieldMixin(ReferenceFieldMixin):
         if output is missing:
             return output
         print('REGISTERING REFERENCE TO: ', output)
-        self.register(output, None, False)
+        self.register(output, inline=False)
         return output

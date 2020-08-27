@@ -11,13 +11,11 @@ from __future__ import absolute_import, print_function
 
 from blinker import Namespace
 from invenio_db import db
-from invenio_records.signals import after_record_insert, after_record_update
+from invenio_records.signals import after_record_insert, after_record_update, after_record_delete
 from oarepo_validate import after_marshmallow_validate
 
-from oarepo_references.mixins import ReferenceEnabledRecordMixin
 from oarepo_references.models import RecordReference
 from oarepo_references.proxies import current_oarepo_references
-from oarepo_references.utils import get_record_object
 
 _signals = Namespace()
 
@@ -40,6 +38,7 @@ from `kwarg['record']`.
 def set_references_from_context(sender, record, context, result, **kwargs):
     """A signal receiver to set record references from validation context."""
     record.oarepo_references = context.get('references', [])
+    print('SETTING REFERENCE CONTEXT TO:', record.oarepo_references, record)
     return record
 
 
@@ -49,11 +48,16 @@ def create_references_record(sender, record, *args, **kwargs):
     assert record.oarepo_references is not None, \
         "oarepo_references needs to be set on a record instance"
 
+    print('CREATE REFERENCE RECORDS FROM:', record.oarepo_references, record)
     with db.session.begin_nested():
         for ref in record.oarepo_references:
             RecordReference.create(record, **ref)
 
     db.session.commit()
+
+    print('CURRENT REFERENCES:')
+    for ref in RecordReference.query.all():
+        print(ref)
 
 
 @after_record_update.connect
@@ -62,8 +66,9 @@ def update_references_record(sender, record, *args, **kwargs):
     assert record.canonical_url is not None, \
         'oarepo_references requires the canonical_url property on a record instance'
 
-    referencing = current_oarepo_references.get_records(record.canonical_url)
-    for r in referencing:
-        rec = get_record_object(r)
-        if isinstance(rec, ReferenceEnabledRecordMixin):
-            rec.update_inlined_ref(record.canonical_url, record.id, record)
+    return current_oarepo_references.reference_content_changed(record, record.canonical_url)
+
+
+@after_record_delete.connect
+def delete_references_record(sender, record, *args, **kwargs):
+    return current_oarepo_references.delete_references_record(record)

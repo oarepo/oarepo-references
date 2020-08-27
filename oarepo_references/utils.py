@@ -10,6 +10,7 @@ from flask import current_app
 from invenio_base.utils import obj_or_import_string
 from invenio_records import Record
 from invenio_records_rest.errors import PIDRESTException
+from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.exceptions import NotFound
 
 from oarepo_references.proxies import current_oarepo_references
@@ -59,7 +60,10 @@ def get_record_object(rec_ref):
     """Fetches an instance of a Record from a certain reference record."""
     rec = rec_ref.record
     rec_cls = obj_or_import_string(rec.class_name.name, Record)
-    return rec_cls.get_record(rec.record_uuid)
+    try:
+        return rec_cls.get_record(rec.record_uuid)
+    except NoResultFound:
+        return None
 
 
 def get_reference_uuid(ref_url):

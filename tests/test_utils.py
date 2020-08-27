@@ -6,14 +6,13 @@
 # it under the terms of the MIT License; see LICENSE file for more details.
 
 """Test utility functions."""
-import typing
 
 import pytest
 from celery import shared_task
 from flask import url_for
 from invenio_records import Record
 from invenio_records_rest.schemas.fields import SanitizedUnicode
-from marshmallow import Schema, missing, post_load
+from marshmallow import Schema, post_load, INCLUDE
 from marshmallow.fields import URL, Field, Nested, Integer
 from oarepo_validate import MarshmallowValidatedRecordMixin
 
@@ -26,16 +25,10 @@ class URLReferenceField(ReferenceByLinkFieldMixin, URL):
     """URL reference marshmallow field."""
 
 
-class LinksField(Field):
-    """Taxonomy links field."""
-    self = URLReferenceField()
-
-
 class TaxonomySchema(ReferenceFieldMixin, Schema):
     """Taxonomy schema."""
-    links = LinksField()
-    slug = SanitizedUnicode()
-    title = SanitizedUnicode()
+    class Meta:
+        unknown = INCLUDE
 
     @post_load
     def update_inline_changes(self, data, many, **kwargs):
@@ -45,6 +38,12 @@ class TaxonomySchema(ReferenceFieldMixin, Schema):
 
         return data
 
+    @post_load
+    def register_reference(self, data, many, **kwargs):
+        url = self.self_url(data)
+        self.register(url)
+        return data
+
     @classmethod
     def self_url(cls, data):
         return data.get('links').get('self')
@@ -52,7 +51,7 @@ class TaxonomySchema(ReferenceFieldMixin, Schema):
 
 class NestedTaxonomySchema(Schema):
     """Nested Taxonomy schema."""
-    taxo2 = Nested(TaxonomySchema(), required=False)
+    taxo2 = Nested(TaxonomySchema, required=False)
 
 
 class URLReferenceSchema(Schema):
@@ -65,8 +64,8 @@ class TestSchema(Schema):
     """Test record schema."""
     title = SanitizedUnicode()
     pid = Integer()
-    taxo1 = Nested(TaxonomySchema(), required=False)
-    sub = Nested(NestedTaxonomySchema(), required=False)
+    taxo1 = Nested(TaxonomySchema, required=False)
+    sub = Nested(NestedTaxonomySchema, required=False)
     ref = URLReferenceField(data_key='$ref', name='$ref', attribute='$ref', required=False)
     reflist = Nested(URLReferenceSchema, many=True, required=False)
 
@@ -95,7 +94,8 @@ class TaxonomyRecord(MarshmallowValidatedRecordMixin,
 
     @property
     def canonical_url(self):
-        return self['links']['self']
+        return url_for('invenio_records_rest.recid_item',
+                       pid_value=self['pid'], _external=True)
 
 
 @pytest.mark.celery(result_backend='redis://')

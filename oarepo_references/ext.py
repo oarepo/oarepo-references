@@ -12,22 +12,13 @@ from __future__ import absolute_import, print_function
 from oarepo_references.api import RecordReferenceAPI
 
 
-class _RecordReferencesState(object):
+class _RecordReferencesState(RecordReferenceAPI):
     """State for record references."""
 
     def __init__(self, app):
         """Initialize state."""
         self.app = app
-        self.api = RecordReferenceAPI()
-
-    def get_records(self, reference):
-        return self.api.get_records(reference)
-
-    def reindex_referencing_records(self, ref, ref_obj=None):
-        self.api.reindex_referencing_records(ref, ref_obj)
-
-    def update_references_from_record(self, record):
-        self.api.update_references_from_record(record)
+        super(_RecordReferencesState, self).__init__()
 
 
 class OARepoReferences(object):

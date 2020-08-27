@@ -20,7 +20,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy_utils.types import UUIDType
 
-from oarepo_references.utils import class_import_string
+from oarepo_references.utils import class_import_string, get_record_object
 
 
 class ClassName(db.Model, Timestamp):
@@ -79,13 +79,17 @@ class ReferencingRecord(db.Model, Timestamp):
         unique=True,
         nullable=True
     )
-    references = relationship('RecordReference', backref='record')
+    references = relationship('RecordReference',
+                              backref='record',
+                              cascade="all, delete",
+                              passive_deletes=True)
     class_id = db.Column(Integer,
                          db.ForeignKey(
                              ClassName.id,
-                             name='fk_oarepo_references_referencing_record_class_id_oarepo_references_classname'
+                             name='fk_oarepo_references_referencing_record_class_id_oarepo_references_classname',
+                             ondelete='CASCADE'
                          ))
-    class_name = relationship('ClassName')
+    class_name = relationship('ClassName', cascade="all, delete", passive_deletes=True)
 
 
 class RecordReference(db.Model, Timestamp):
@@ -168,7 +172,8 @@ class RecordReference(db.Model, Timestamp):
 
     record_id = db.Column(
         db.ForeignKey(ReferencingRecord.id,
-                      name='fk_oarepo_references_record_id_oarepo_references_referencing_record')
+                      name='fk_oarepo_references_record_id_oarepo_references_referencing_record',
+                      ondelete="CASCADE")
     )
     """Invenio Referencing Record info"""
 
@@ -198,6 +203,9 @@ class RecordReference(db.Model, Timestamp):
     __mapper_args__ = {
         'version_id_col': version_id
     }
+
+    def __repr__(self):
+        return f'{get_record_object(self)}->{self.reference}'
 
 
 __all__ = (

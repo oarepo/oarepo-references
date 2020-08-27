@@ -15,7 +15,7 @@ from invenio_records import Record
 from invenio_search import current_search_client
 
 from oarepo_references.mixins import ReferenceEnabledRecordMixin
-from oarepo_references.models import RecordReference
+from oarepo_references.models import RecordReference, ReferencingRecord
 from oarepo_references.signals import after_reference_update
 from oarepo_references.utils import get_record_object
 
@@ -27,7 +27,13 @@ class RecordReferenceAPI(object):
 
     @classmethod
     def reference_content_changed(cls, ref_obj, ref_url=None, ref_uuid=None):
-        """Find & update records that have inlined the changed reference."""
+        """Find & update records that have inlined the changed reference.
+
+        :param ref_obj: Changed reference content data
+        :param ref_url: Reference URI
+        :param ref_uuid: UUID of referenced Record
+        :returns A list of Records affected by change and updated
+        """
         assert ref_url or ref_uuid, 'Reference URL or UUID must be provided'
 
         updated = []
@@ -42,7 +48,12 @@ class RecordReferenceAPI(object):
 
     @classmethod
     def reference_changed(cls, old, new):
-        """Find & update records that have referenced the changed reference."""
+        """Find & update records that have referenced the changed reference.
+
+        :param old: Old Reference URI
+        :param new: New Reference URI
+        :returns: A list of Records affected by change and updated
+        """
         updated = []
         records_to_update = cls.get_records(old, exact=True)
         for r in records_to_update:
@@ -70,6 +81,15 @@ class RecordReferenceAPI(object):
                     .filter(RecordReference.reference.startswith(reference))
 
         return query.all()
+
+    @classmethod
+    def delete_references_record(cls, record):
+        """Delete all reference records of a certain Record from a database.
+
+        :param record: Record that has been deleted
+        :return: None
+        """
+        ReferencingRecord.query.filter_by(record_uuid=record.model.id).delete()
 
     @classmethod
     def reindex_referencing_records(cls, ref, ref_obj=None):
