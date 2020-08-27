@@ -13,7 +13,7 @@ from flask import url_for
 from invenio_records import Record
 from invenio_records_rest.schemas.fields import SanitizedUnicode
 from marshmallow import INCLUDE, Schema, post_load
-from marshmallow.fields import URL, Field, Integer, Nested
+from marshmallow.fields import URL, Integer, Nested
 from oarepo_validate import MarshmallowValidatedRecordMixin
 
 from oarepo_references.mixins import ReferenceByLinkFieldMixin, \
@@ -28,6 +28,7 @@ class URLReferenceField(ReferenceByLinkFieldMixin, URL):
 
 class TaxonomySchema(ReferenceFieldMixin, Schema):
     """Taxonomy schema."""
+
     class Meta:
         unknown = INCLUDE
 

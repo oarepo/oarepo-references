@@ -44,22 +44,22 @@ SPHINX-END
 from __future__ import absolute_import, print_function
 
 import os
-import typing
 
 from flask import Flask, url_for
 from flask_babelex import Babel
 from invenio_records import Record
-from invenio_records_rest.schemas.fields import SanitizedUnicode
-from marshmallow import Schema, missing, post_load, INCLUDE
+from marshmallow import INCLUDE, Schema, post_load
 from marshmallow.fields import URL, Field
 from oarepo_validate import MarshmallowValidatedRecordMixin
 
 from oarepo_references import OARepoReferences
-from oarepo_references.mixins import ReferenceEnabledRecordMixin, ReferenceByLinkFieldMixin
+from oarepo_references.mixins import ReferenceByLinkFieldMixin, \
+    ReferenceEnabledRecordMixin
 
 
 class ExampleURLReferenceField(ReferenceByLinkFieldMixin, URL):
     """URL reference marshmallow field."""
+
 
 class ExampleLinksField(Field):
     """Taxonomy links field."""
@@ -68,6 +68,7 @@ class ExampleLinksField(Field):
 
 class ExampleInlineReferenceSchema(Schema):
     """Taxonomy schema."""
+
     class Meta:
         unknown = INCLUDE
 
