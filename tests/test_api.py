@@ -48,8 +48,13 @@ class TestOArepoReferencesAPI:
             new='http://localhost/api/records/new',
         )
         assert len(updated) == 2
-        assert updated[0].dumps().get('$ref') == 'http://localhost/api/records/new'
-        assert updated[1].dumps().get('reflist')[0].get('$ref') == 'http://localhost/api/records/new'
+
+        refs = []
+        for upd in updated:
+            dmp = upd.dumps()
+            ref = dmp.get('$ref', False) or dmp.get('reflist', False)[0].get('$ref')
+            refs.append(ref)
+        assert refs == ['http://localhost/api/records/new', 'http://localhost/api/records/new']
 
     def test_get_records(self, db, referencing_records, references_api):
         """Test that we can get reference records referencing a reference."""
