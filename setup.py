@@ -38,7 +38,7 @@ setup_requires = [
 install_requires = [
     'oarepo-validate>=1.1.0',
     # TODO: remove when tested builds of oarepo are finished
-    'invenio-records-rest==1.6.5',
+    'invenio-records-rest<1.6.5',
     'werkzeug==0.16.1'
 ]
 
