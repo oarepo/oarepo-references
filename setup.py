@@ -29,6 +29,9 @@ extras_require = {
         'oarepo[tests-es7,taxonomies]~={version}'.format(version=OAREPO_VERSION),
         *tests_require
     ],
+    'validate': [
+        'oarepo-validate>=1.1.0'
+    ]
 }
 
 setup_requires = [
@@ -36,7 +39,7 @@ setup_requires = [
 ]
 
 install_requires = [
-    'oarepo-validate>=1.1.0'
+    # 'oarepo-validate>=1.1.0'
 ]
 
 packages = find_packages()
