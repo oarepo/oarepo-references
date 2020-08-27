@@ -99,7 +99,10 @@ class TaxonomyRecord(MarshmallowValidatedRecordMixin,
 
 
 @pytest.mark.celery(result_backend='redis://')
-def test_run_task_on_referrers(referencing_records, referenced_records):
+def test_run_task_on_referrers(referencing_records,
+                               referenced_records,
+                               celery_app,
+                               celery_includes):
     """Test that tasks are launched on referring records."""
     referred = 'http://localhost/records/1'
     referers = [
@@ -123,13 +126,16 @@ def test_run_task_on_referrers(referencing_records, referenced_records):
 
     @shared_task
     def _test_task(*args, **kwargs):
+        nonlocal tasklist
         tasklist.append(kwargs['record'])
 
     @shared_task
     def _test_failing_task(*args, **kwargs):
         raise TabError
 
-    run_task_on_referrers(referred, _test_task.s(), _test_success_task.s(), None)
+    ret = run_task_on_referrers(referred, _test_task.s(), _test_success_task.s(), None)
+    ret.get()
+    print(ret.status, ret)
     assert len(tasklist) == 3
     assert tasklist == referers
     assert success is True

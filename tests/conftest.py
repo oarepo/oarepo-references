@@ -37,6 +37,14 @@ def references_api():
     return RecordReferenceAPI()
 
 
+@pytest.fixture(scope='session')
+def celery_config():
+    return {
+        'broker_url': 'amqp://',
+        'result_backend': 'redis://'
+    }
+
+
 @pytest.fixture(scope="module")
 def app_config(app_config):
     """Flask application fixture."""
@@ -47,7 +55,8 @@ def app_config(app_config):
         SQLALCHEMY_DATABASE_URI=os.environ.get(
             'SQLALCHEMY_DATABASE_URI',
             'sqlite:///:memory:'),
-        SERVER_NAME='localhost'
+        SERVER_NAME='localhost',
+        CELERY_ALWAYS_EAGER=True
     )
     app_config['PIDSTORE_RECID_FIELD'] = 'pid'
     app_config['RECORDS_REST_ENDPOINTS'] = dict(
