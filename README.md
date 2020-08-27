@@ -1,9 +1,9 @@
 # OArepo references
 
-[![](https://img.shields.io/github/license/oarepo/flask-taxonomies.svg)](https://github.com/oarepo/oarepo-references/blob/master/LICENSE)
-[![](https://img.shields.io/travis/oarepo/flask-taxonomies.svg)](https://travis-ci.org/oarepo/oarepo-references)
-[![](https://img.shields.io/coveralls/oarepo/flask-taxonomies.svg)](https://coveralls.io/r/oarepo/oarepo-references)
-[![](https://img.shields.io/pypi/v/flask-taxonomies.svg)](https://pypi.org/pypi/oarepo-references)
+[![](https://img.shields.io/github/license/oarepo/oarepo-references.svg)](https://github.com/oarepo/oarepo-references/blob/master/LICENSE)
+[![](https://img.shields.io/travis/oarepo/oarepo-references.svg)](https://travis-ci.org/oarepo/oarepo-references)
+[![](https://img.shields.io/coveralls/oarepo/oarepo-references.svg)](https://coveralls.io/r/oarepo/oarepo-references)
+[![](https://img.shields.io/pypi/v/oarepo-references.svg)](https://pypi.org/pypi/oarepo-references)
 
 OArepo module for tracking and updating references in Invenio records
 
