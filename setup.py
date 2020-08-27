@@ -28,9 +28,6 @@ extras_require = {
     'tests-es7': [
         'oarepo[tests-es7,taxonomies]~={version}'.format(version=OAREPO_VERSION),
         *tests_require
-    ],
-    'validate': [
-        'oarepo-validate>=1.1.0'
     ]
 }
 
@@ -39,7 +36,9 @@ setup_requires = [
 ]
 
 install_requires = [
-    # 'oarepo-validate>=1.1.0'
+    'oarepo-validate>=1.1.0'
+    # TODO: remove when tested builds of oarepo are finished
+    'invenio-records-rest==1.6.5'
 ]
 
 packages = find_packages()
