@@ -42,6 +42,7 @@ class RecordReferenceAPI(object):
 
     @classmethod
     def reference_changed(cls, old, new):
+        """Find & update records that have referenced the changed reference."""
         updated = []
         records_to_update = cls.get_records(old, exact=True)
         for r in records_to_update:

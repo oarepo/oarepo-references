@@ -12,34 +12,18 @@ import pytest
 from celery import shared_task
 from flask import url_for
 from invenio_records import Record
-from invenio_records_rest.schemas.fields import SanitizedUnicode, PersistentIdentifier
+from invenio_records_rest.schemas.fields import SanitizedUnicode
 from marshmallow import Schema, missing, post_load
 from marshmallow.fields import URL, Field, Nested, Integer
 from oarepo_validate import MarshmallowValidatedRecordMixin
 
-from oarepo_references.mixins import ReferenceEnabledRecordMixin
+from oarepo_references.mixins import ReferenceEnabledRecordMixin, ReferenceByLinkFieldMixin
 from oarepo_references.schemas.fields.reference import ReferenceFieldMixin
 from oarepo_references.utils import get_reference_uuid, run_task_on_referrers
 
 
-class URLReferenceField(ReferenceFieldMixin, URL):
+class URLReferenceField(ReferenceByLinkFieldMixin, URL):
     """URL reference marshmallow field."""
-
-    def deserialize(self,
-                    value: typing.Any,
-                    attr: str = None,
-                    data: typing.Mapping[str, typing.Any] = None,
-                    **kwargs):
-        changes = self.context.get('renamed_reference', None)
-        if changes and value == changes['old_url']:
-            value = changes['new_url']
-
-        output = super(URLReferenceField, self).deserialize(value, attr, data, **kwargs)
-        if output is missing:
-            return output
-
-        self.register(output, None, False)
-        return output
 
 
 class LinksField(Field):
@@ -59,7 +43,6 @@ class TaxonomySchema(ReferenceFieldMixin, Schema):
         if changes and changes['url'] == self.self_url(data):
             data = changes['content']
 
-        self.register(self.self_url(data), None, True)
         return data
 
     @classmethod

@@ -6,7 +6,7 @@
 # oarepo-references is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
 
-pydocstyle oarepo_references tests docs && \
+pydocstyle oarepo_references tests && \
 isort -rc -c -df && \
 check-manifest --ignore ".travis-*" && \
 pytest

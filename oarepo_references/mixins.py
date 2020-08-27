@@ -6,8 +6,10 @@
 # it under the terms of the MIT License; see LICENSE file for more details.
 
 """OArepo module for tracking and updating references in Invenio records."""
-from invenio_records import Record
-from oarepo_validate import before_marshmallow_validate, after_marshmallow_validate
+import typing
+from marshmallow import missing
+
+from oarepo_references.schemas.fields.reference import ReferenceFieldMixin
 
 
 class ReferenceEnabledRecordMixin(object):
@@ -27,3 +29,22 @@ class ReferenceEnabledRecordMixin(object):
             'old_url': old_url,
             'new_url': new_url
         })
+
+
+class ReferenceByLinkFieldMixin(ReferenceFieldMixin):
+    """Marshmallow field that contains reference by link."""
+    def deserialize(self,
+                    value: typing.Any,
+                    attr: str = None,
+                    data: typing.Mapping[str, typing.Any] = None,
+                    **kwargs):
+        changes = self.context.get('renamed_reference', None)
+        if changes and value == changes['old_url']:
+            value = changes['new_url']
+
+        output = super(ReferenceByLinkFieldMixin, self).deserialize(value, attr, data, **kwargs)
+        if output is missing:
+            return output
+        print('REGISTERING REFERENCE TO: ', output)
+        self.register(output, None, False)
+        return output
