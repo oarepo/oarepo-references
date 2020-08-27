@@ -21,12 +21,8 @@ tests_require = [
 ]
 
 extras_require = {
-    'docs': [
-        'Sphinx>=1.5.1',
-    ],
     'tests': [
         'oarepo[tests]~={version}'.format(version=OAREPO_VERSION),
-        'flask-taxonomies>=6.6.8',
         *tests_require
     ],
     'tests-es7': [
