@@ -11,18 +11,18 @@ See https://pytest-invenio.readthedocs.io/ for documentation on which test
 fixtures are available.
 """
 import os
+import uuid
 
 import pytest
-import uuid
 from flask import url_for
 from invenio_app.factory import create_api
 from invenio_db import db as _db
 from invenio_pidstore.providers.recordid import RecordIdProvider
-from sqlalchemy_utils import database_exists, create_database
+from sqlalchemy_utils import create_database, database_exists
+from tests.test_utils import TestRecord
 
 from oarepo_references.api import RecordReferenceAPI
 from oarepo_references.models import ClassName
-from tests.test_utils import TestRecord
 
 
 @pytest.fixture(scope="module")
@@ -39,6 +39,7 @@ def references_api():
 
 @pytest.fixture(scope='session')
 def celery_config():
+    """Celery app test configuration."""
     return {
         'broker_url': 'amqp://',
         'result_backend': 'redis://'
@@ -96,6 +97,7 @@ def db(app):
 
 
 def get_pid():
+    """Generates a new PID for a record."""
     record_uuid = uuid.uuid4()
     provider = RecordIdProvider.create(
         object_type='rec',
@@ -127,6 +129,7 @@ def get_ref_url(pid):
 
 @pytest.fixture
 def class_names(db):
+    """Test Class names fixture."""
     class_names = [
         ClassName.create(name=str(TestRecord.__class__))
     ]

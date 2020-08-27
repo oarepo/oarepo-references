@@ -7,7 +7,6 @@
 
 """Test OARepo references fields."""
 import pytest
-
 from tests.test_utils import TestRecord
 
 

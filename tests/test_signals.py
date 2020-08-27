@@ -9,13 +9,13 @@
 import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
+from tests.conftest import get_pid
+from tests.test_utils import TaxonomyRecord, TestRecord
 
-from oarepo_references.models import ReferencingRecord, RecordReference
+from oarepo_references.models import RecordReference, ReferencingRecord
 from oarepo_references.proxies import current_oarepo_references
 from oarepo_references.signals import create_references_record, \
-    set_references_from_context, delete_references_record
-from tests.conftest import get_pid
-from tests.test_utils import TestRecord, TaxonomyRecord
+    delete_references_record, set_references_from_context
 
 
 def test_set_references_from_context(referencing_records, referenced_records):

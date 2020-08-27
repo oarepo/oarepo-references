@@ -12,11 +12,12 @@ from celery import shared_task
 from flask import url_for
 from invenio_records import Record
 from invenio_records_rest.schemas.fields import SanitizedUnicode
-from marshmallow import Schema, post_load, INCLUDE
-from marshmallow.fields import URL, Field, Nested, Integer
+from marshmallow import INCLUDE, Schema, post_load
+from marshmallow.fields import URL, Field, Integer, Nested
 from oarepo_validate import MarshmallowValidatedRecordMixin
 
-from oarepo_references.mixins import ReferenceEnabledRecordMixin, ReferenceByLinkFieldMixin
+from oarepo_references.mixins import ReferenceByLinkFieldMixin, \
+    ReferenceEnabledRecordMixin
 from oarepo_references.schemas.fields.reference import ReferenceFieldMixin
 from oarepo_references.utils import get_reference_uuid, run_task_on_referrers
 

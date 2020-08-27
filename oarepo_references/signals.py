@@ -11,7 +11,8 @@ from __future__ import absolute_import, print_function
 
 from blinker import Namespace
 from invenio_db import db
-from invenio_records.signals import after_record_insert, after_record_update, after_record_delete
+from invenio_records.signals import after_record_delete, after_record_insert, \
+    after_record_update
 from oarepo_validate import after_marshmallow_validate
 
 from oarepo_references.models import RecordReference
@@ -71,4 +72,5 @@ def update_references_record(sender, record, *args, **kwargs):
 
 @after_record_delete.connect
 def delete_references_record(sender, record, *args, **kwargs):
+    """A signal receiver that deletes all reference records of a deleted Record."""
     return current_oarepo_references.delete_references_record(record)

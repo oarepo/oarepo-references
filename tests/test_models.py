@@ -7,14 +7,16 @@
 
 """Test references models."""
 import uuid
+
 import pytest
 from invenio_records import Record
 from sqlalchemy.exc import IntegrityError
-
-from oarepo_references.models import ClassName, ReferencingRecord, RecordReference
-from oarepo_references.utils import class_import_string
 from tests.conftest import get_ref_url
 from tests.test_utils import TestRecord
+
+from oarepo_references.models import ClassName, RecordReference, \
+    ReferencingRecord
+from oarepo_references.utils import class_import_string
 
 
 @pytest.mark.usefixtures("db")

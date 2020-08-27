@@ -7,9 +7,9 @@
 
 """Test OARepo references fields."""
 import pytest
+from tests.test_utils import TestSchema
 
 from oarepo_references.schemas.fields.reference import ReferenceFieldMixin
-from tests.test_utils import TestSchema
 
 
 @pytest.mark.usefixtures("db")

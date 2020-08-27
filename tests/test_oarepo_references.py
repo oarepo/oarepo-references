@@ -14,7 +14,8 @@ from invenio_records.signals import after_record_insert
 from oarepo_validate import after_marshmallow_validate
 
 from oarepo_references import OARepoReferences
-from oarepo_references.signals import create_references_record, set_references_from_context
+from oarepo_references.signals import create_references_record, \
+    set_references_from_context
 
 
 def test_version():

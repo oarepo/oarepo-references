@@ -14,7 +14,7 @@ import uuid
 from invenio_db import db
 from invenio_records import Record
 from invenio_records.models import Timestamp
-from sqlalchemy import String, UniqueConstraint, Integer, Boolean
+from sqlalchemy import Boolean, Integer, String, UniqueConstraint
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.exc import NoResultFound
@@ -24,9 +24,8 @@ from oarepo_references.utils import class_import_string, get_record_object
 
 
 class ClassName(db.Model, Timestamp):
-    """
-    Represents a record class lookup table.
-    """
+    """Represents a record class lookup table."""
+
     __tablename__ = 'oarepo_references_classname'
 
     id = db.Column(Integer, primary_key=True)
@@ -46,9 +45,8 @@ class ClassName(db.Model, Timestamp):
 
 
 class ReferencingRecord(db.Model, Timestamp):
-    """
-    Represents a lookup table for classes of referencing records.
-    """
+    """Represents a lookup table for classes of referencing records."""
+
     __tablename__ = 'oarepo_references_referencing_record'
 
     def __init__(self,
@@ -127,8 +125,7 @@ class RecordReference(db.Model, Timestamp):
 
     @classmethod
     def create(cls, record: Record, reference, reference_uuid, inline=False):
-        """
-        Creates a new Reference Record.
+        """Creates a new Reference Record.
 
         :param record: an Invenio Record instance
         :param reference: URL reference to the referenced object
@@ -136,7 +133,6 @@ class RecordReference(db.Model, Timestamp):
         :param inline: is referenced object data inlined into the referencing record?
         :return: an instance of the created RecordReference
         """
-
         if RecordReference.query \
                 .join(ReferencingRecord, aliased=True) \
                 .filter(ReferencingRecord.record_uuid == record.id)\
@@ -205,6 +201,7 @@ class RecordReference(db.Model, Timestamp):
     }
 
     def __repr__(self):
+        """Reference Record representation string."""
         return f'{get_record_object(self)}->{self.reference}'
 
 
