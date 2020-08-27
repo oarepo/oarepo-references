@@ -7,11 +7,18 @@ from urllib.parse import urlsplit
 
 from celery import chain
 from flask import current_app
+from invenio_base.utils import obj_or_import_string
 from invenio_records import Record
 from invenio_records_rest.errors import PIDRESTException
+from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.exceptions import NotFound
 
 from oarepo_references.proxies import current_oarepo_references
+
+
+def class_import_string(o):
+    """Returns a fully qualified import path of an object class."""
+    return f'{o.__class__.__module__}.{o.__class__.__qualname__}'
 
 
 def run_task_on_referrers(reference, task, success_task=None, error_task=None):
@@ -29,7 +36,7 @@ def run_task_on_referrers(reference, task, success_task=None, error_task=None):
     rec_list = []
 
     for ref in refs:
-        rec = Record.get_record(id_=ref.record_uuid)
+        rec = Record.get_record(id_=ref.record.record_uuid)
         # Add the referencing record to the task signature
         record_task = task.clone(kwargs={'record': rec})
         if error_task:
@@ -49,59 +56,14 @@ def run_task_on_referrers(reference, task, success_task=None, error_task=None):
     return job_result
 
 
-def transform_dicts_in_data(data, func):
-    """
-    Calls a function on all dicts contained in data input.
-
-    :param func: transform func to apply on each dict in data
-    :param data: data dict or list
-    """
-
-    def _transform_value(val, k):
-        if isinstance(val, dict):
-            data[k] = transform_dicts_in_data(val, func)
-        elif isinstance(val, list):
-            for idx, v in enumerate(val):
-                if isinstance(v, dict) or isinstance(v, list):
-                    data[k][idx] = transform_dicts_in_data(v, func)
-
-    if isinstance(data, list):
-        for idx, item in enumerate(data):
-            _transform_value(item, idx)
-        # TODO: find out why we need to wrap list in dict like this
-        return {'_': data}
-
-    for key, value in data.items():
-        _transform_value(value, key)
-
-    if isinstance(data, dict):
-        return func(data)
-
-
-def keys_in_dict(data, key='$ref', required_type=None):
-    """
-    Returns an array of all key occurrences in a given dict.
-
-    :param data: haystack in which we are looking for needle
-    :param key: a key name we should be looking for
-    :param required_type: a required type of a value
-    :return: Array[object] list of values of all occurrences of a given key.
-    """
-    if isinstance(data, list):
-        data = {'_': data}
-
-    for k, v in data.items():
-        if k == key:
-            if not required_type or isinstance(v, required_type):
-                yield v
-        if isinstance(v, dict):
-            for result in keys_in_dict(v, key, required_type):
-                yield result
-        elif isinstance(v, list):
-            for d in v:
-                if isinstance(d, dict) or isinstance(d, list):
-                    for result in keys_in_dict(d, key, required_type):
-                        yield result
+def get_record_object(rec_ref):
+    """Fetches an instance of a Record from a certain reference record."""
+    rec = rec_ref.record
+    rec_cls = obj_or_import_string(rec.class_name.name, Record)
+    try:
+        return rec_cls.get_record(rec.record_uuid)
+    except NoResultFound:
+        return None
 
 
 def get_reference_uuid(ref_url):

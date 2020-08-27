@@ -27,23 +27,20 @@ cache:
 env:
   global:
     - POSTGRESQL_SQLALCHEMY_DATABASE_URI="postgresql+psycopg2://postgres@localhost:5432/invenio"
-    - ES6_DOWNLOAD_URL="https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.2.0.tar.gz"
     - ES7_DOWNLOAD_URL="https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.5.1-linux-x86_64.tar.gz"
     - ES_HOST=127.0.0.1
   matrix:
-    - REQUIREMENTS=release EXTRAS=postgresql,tests ES=$ES6_DOWNLOAD_URL SQLALCHEMY_DATABASE_URI=$POSTGRESQL_SQLALCHEMY_DATABASE_URI
-    - REQUIREMENTS=release EXTRAS=sqlite,tests ES=$ES6_DOWNLOAD_URL
-    - REQUIREMENTS=release EXTRAS=postgresql,tests ES=$ES6_DOWNLOAD_URL  OAREPO_VERSION=3.2.0 SQLALCHEMY_DATABASE_URI=$POSTGRESQL_SQLALCHEMY_DATABASE_URI
+    - REQUIREMENTS=release EXTRAS=sqlite,tests-es7 ES=$ES7_DOWNLOAD_URL
     - REQUIREMENTS=release EXTRAS=postgresql,tests-es7 ES=$ES7_DOWNLOAD_URL  OAREPO_VERSION=3.2.0 SQLALCHEMY_DATABASE_URI=$POSTGRESQL_SQLALCHEMY_DATABASE_URI
 
 python:
-  - "3.7"
   - "3.8"
 
 before_install:
   - "travis_retry pip install --upgrade pip setuptools py"
   - "travis_retry pip install twine wheel coveralls requirements-builder pip-tools"
   - "requirements-builder -e $EXTRAS --level=pypi setup.py > .travis-release-requirements.in"
+  - cat .travis-release-requirements.in
   - "pip-compile -U --verbose -o .travis-release-requirements.txt .travis-release-requirements.in"
   - cat .travis-release-requirements.txt
   - mkdir /tmp/elasticsearch
@@ -54,6 +51,7 @@ before_install:
 install:
   - "travis_retry pip install -r .travis-${REQUIREMENTS}-requirements.txt"
   - "travis_retry pip install -e .[$EXTRAS]"
+  - "travis_retry pip install -e .[validate]"
 
 script:
   - "./run-tests.sh"
@@ -72,7 +70,7 @@ deploy:
   provider: pypi
   user: "__token__"
   password:
-    secure: "g2oWJYTrVqCFhOakiB16tuQPD9hgFV0eUDk5k0jmdeJBlOnydKkHptJxml68HOSnmnmugp378FrxbBlFF9xHqv96CUSEKAp5IPM3J0SOJBdqGJF+Plh/UTt5QhUWu09dkx/LDf10Y0aOSQa5wjKFUa99W7Rw8dH9M9jazmcKUwAS80dNGeMv010faGDvCclUQO5avInrCpXByvz5X3BbXD+AWiIFAOZTrlT9I3JtkG3Iq370VzO/4+VDDK7ha6yg/fbXZ6ACdzVv983t+6r5+pqIahf6peKj0cRP+CRC7EnVdGUaetz2T6hzX6nWKEK1CfEhAVMRaSLfurRxo5WZTYiuDHz04o+k7VkcgthM7oPIRj3VC3H6BWVVhzRyB7jzXH36CHJsk/X+Y3UhfiSTmzTihC9gUeRS/N45rTVHIQm9H2kUQog+4iXzl09n9f+oXDvCRYgs7NDE08gszO09BCMSlLCuREQ0ROSeGSMWGX9JnUDzhLojviGH9a5dNuLUzmMlb6GnvX6C/u8N4hrIBCLRi65i6hqynonWwa/DQVgtdn982EXNHcZElvuOMPfeB0pgEMHnT0kmtyggsZZsdBMqotapJA5xsRshPRCvJ5/GFqX/TSJilh7XZam+EH+USlbozA/szSIggmJ2OPNBc03ZhoaHNtAsyll6f15mOG4="
+    secure: "1GDwfq3yyRAQTqLLRB1oFOHYUAUiq7jWD6feL2V5poUb2KrylZjp2znoyX9CAstK6j1YTZonI7Eu4TYu8iIHlWTW0JnXQ0gJ4pAO+T8n0dkGTAedfJzdenpTV6GADxg6PejqLz9ROGzi+N1g4LqyPC0MESmfI8zTGUhc/SIib+Yykp2LU9R0t1I6cI9vrOJZ6MDX6ldC4fcCV54Ncio/8TzTqI99SSZNmZPkqnWYMrkMzjTO12evEZPrpjMgY9F4djWShe7jUKEoEdkJJls80RfOnUNmWKkWnqHVDQZNXxKpvD/5m1bjSchbjA7KqYVWb9ApZ6tJftq7UWr2XT3VqGCph2dFx+bLf9/BMRAR0EY7m4KBO/VLVjf3SDf+FiIaq+ZHiL1jdJkoxXuwwDZeFfxB2GKnCUpXeEDNm2YBLU/E63UkdpIqZOG/dMJnhGhJ/vRDNt25unA4L7tdnbaXDBjf9UuSAbTW25JYQ53kBa6dBWRpNIfylP0TrW9xiKrl6d23NF9N36SEmtBwu1jkmSI66uwmmBEstEj5PGyamPja9b44WG3b1MbNiVZS3hiBmgz0SCaanUDeugsTwv4p1LoyvIe5xb7pzYfVgZ7qsvPztXPilrXPYjh5QoB+TK7G0HJ0ya421sWd1IYxH7+k8ZIcEUbLiftG0zcgNm/GYWc="
   on:
     tags: true
     branch: master

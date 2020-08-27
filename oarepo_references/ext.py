@@ -9,31 +9,16 @@
 
 from __future__ import absolute_import, print_function
 
-from invenio_records.signals import after_record_delete, after_record_insert, \
-    after_record_update, before_record_update
-
 from oarepo_references.api import RecordReferenceAPI
-from oarepo_references.signals import convert_record_refs, \
-    create_references_record, delete_references_record, \
-    update_references_record
 
 
-class _RecordReferencesState(object):
+class _RecordReferencesState(RecordReferenceAPI):
     """State for record references."""
 
     def __init__(self, app):
         """Initialize state."""
         self.app = app
-        self.api = RecordReferenceAPI()
-
-    def get_records(self, reference):
-        return self.api.get_records(reference)
-
-    def reindex_referencing_records(self, ref, ref_obj=None):
-        self.api.reindex_referencing_records(ref, ref_obj)
-
-    def update_references_from_record(self, record):
-        self.api.update_references_from_record(record)
+        super(_RecordReferencesState, self).__init__()
 
 
 class OARepoReferences(object):
@@ -46,12 +31,6 @@ class OARepoReferences(object):
 
     def init_app(self, app):
         """Flask application initialization."""
-        # Connect invenio-records signal handlers
-        after_record_insert.connect(create_references_record)
-        before_record_update.connect(convert_record_refs)
-        after_record_update.connect(update_references_record)
-        after_record_delete.connect(delete_references_record)
-
         state = _RecordReferencesState(app)
         app.extensions['oarepo-references'] = state
         return state

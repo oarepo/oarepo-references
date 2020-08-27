@@ -16,11 +16,128 @@ To use this module in your Invenio application, run the following in your virtua
 
 ## Prerequisites
 
+- [oarepo-validate](https://github.com/oarepo/oarepo-validate)
+
 This module expects a `canonical_url` field present on your Record model. This field
 should contain a full canonical url reference to the Record instance, e.g.
 
 ```python
 class Record(FilesRecord):
+    @property
+    def canonical_url(self):
+        return url_for('invenio_records_rest.recid_item',
+                       pid_value=self['pid'], _external=True)
+```
+
+## Types of reference
+
+This module considers the following two types of reference that can occur
+the referencing objects:
+
+### Reference by link
+
+Reference to another object is represented in the referencing
+object's metadata as a `canonical_url` of the referenced object, e.g:
+
+```json
+{
+...
+  "links": {
+    "attachments": "https://example.org/objects/M249/attachments",
+    "self": "https://example.org/objects/M249",
+    "works": "https://example.org/objects/M249/works"
+  }
+}
+```
+
+### Inlined reference
+
+The actual metadata content of the referenced object are inlined
+into the referencing object's metadata, e.g:
+
+```json
+{
+  ...
+    "stylePeriod": {
+        "id":	123,
+        "level": 1,
+        "links": {…},
+        "path": "/novovek-moderni-doba",
+        "slug":	"novovek-moderni-doba",
+        "startYear": 1789,
+        "title": […],
+        "tooltip": ""
+    }
+}
+```
+
+In the example above, the complete metadata of a certain Taxonomic record
+are inlined into the `stylePeriod` field of the referencing object.
+
+## Usage
+
+To enable reference tracking on your data model objects, you will need to
+do the following:
+
+  - Tell Marshmallow, which fields of your marshmallow schema contain references
+    by link by inheriting `ReferenceByLinkFieldMixin`:
+
+```python
+class URLReferenceField(ReferenceByLinkFieldMixin, URL):
+    """URL reference marshmallow field."""
+```
+
+  - If your Marshmallow Scheme holds *inlined* references, you
+    will need to define a custom nested schema for inlined reference
+    contents, that defines `register_reference` and `update_inline`
+    handlers for marshmallow `@post_load` signal, like this:
+
+```python
+class InlinedReferenceSchema(ReferenceFieldMixin, Schema):
+    """Inlined reference schema."""
+    class Meta:
+        unknown = INCLUDE
+
+    @post_load
+    def update_inline_changes(self, data, many, **kwargs):
+        changes = self.context.get('changed_reference', None)
+        if changes and changes['url'] == self.self_url(data):
+            data = changes['content']
+
+        return data
+
+    @post_load
+    def register_reference(self, data, many, **kwargs):
+        url = self.self_url(data)
+        self.register(url)
+        return data
+
+    @classmethod
+    def self_url(cls, data):
+        return data.get('links').get('self')
+```
+
+  - Use the reference-enabled field in your Marshmallow schema:
+```python
+class ExampleReferencesSchema(Schema):
+    """Reference to other objects schema."""
+    link = URLReferenceField()
+    inlined = Nested(InlinedReferenceSchema)
+```
+
+  - Inherit your Record model from the `ReferenceEnabledRecordMixin` and `MarshmallowValidatedRecordMixin`.
+    Doing so, will add support for automatic Record updates whenever some reference contained in Record metadata
+    changes:
+
+```python
+class ExampleRecord(MarshmallowValidatedRecordMixin,
+                    ReferenceEnabledRecordMixin,
+                    Record):
+    """References enabled example record class."""
+    MARSHMALLOW_SCHEMA = ExampleReferencesSchema
+    VALIDATE_MARSHMALLOW = True
+    VALIDATE_PATCH = True
+
     @property
     def canonical_url(self):
         return url_for('invenio_records_rest.recid_item',
@@ -34,11 +151,9 @@ managing of reference records whenever a Record changes:
 
 | Invenio Records signal | Registered [signal handler](https://github.com/oarepo/oarepo-references/blob/master/oarepo_references/signals.py) | Description |
 |------------------------|--------------------------|----------------------------------------------------------------------------------------------------------|
-| after_record_insert    | create_references_record | Finds all references to other records in a Record and creates RecordReference entries for each reference |
-| before_record_update   | convert_record_refs      | Transform Record data to contain references in an expected format (e.g any object with `links['self'] == url` is converted to `{'$ref': url}` |
-| after_record_update    | update_references_record | Updates all RecordReferences that refer to the updated Record and reindexes all Records referring to the updated one |
+| after_record_insert    | create_references_record | Finds all references to other objects in a Record and creates RecordReference entries for each reference |
+| after_record_update    | update_references_record | Updates all RecordReferences that refer to the updated object and reindexes all referring Records |
 | after_record_delete    | delete_references_record | Deletes all RecordReferences referring to the deleted Record |
-
 
 ## Module API
 

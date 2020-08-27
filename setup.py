@@ -17,19 +17,21 @@ history = open('CHANGES.rst').read()
 OAREPO_VERSION = os.environ.get('OAREPO_VERSION', '3.2.1')
 
 tests_require = [
+    'uuid'
 ]
 
 extras_require = {
-    'docs': [
-        'Sphinx>=1.5.1',
-    ],
     'tests': [
         'oarepo[tests]~={version}'.format(version=OAREPO_VERSION),
-        'flask-taxonomies>=6.6.8'
+        *tests_require
     ],
     'tests-es7': [
-        'oarepo[tests-es7,taxonomies]~={version}'.format(version=OAREPO_VERSION)
+        'oarepo[tests-es7]~={version}'.format(version=OAREPO_VERSION),
+        *tests_require
     ],
+    'validate': [
+        'oarepo-validate>=1.1.0',
+    ]
 }
 
 setup_requires = [
@@ -75,21 +77,7 @@ setup(
         ],
         'flask.commands': [
             'references = oarepo_references.cli:references',
-        ],
-        'invenio_i18n.translations': [
-            'messages = oarepo_references',
-        ],
-        # TODO: Edit these entry points to fit your needs.
-        # 'invenio_access.actions': [],
-        # 'invenio_admin.actions': [],
-        # 'invenio_assets.bundles': [],
-        # 'invenio_base.api_apps': [],
-        # 'invenio_base.api_blueprints': [],
-        # 'invenio_base.blueprints': [],
-        # 'invenio_celery.tasks': [],
-        # 'invenio_db.models': [],
-        # 'invenio_pidstore.minters': [],
-        # 'invenio_records.jsonresolver': [],
+        ]
     },
     extras_require=extras_require,
     install_requires=install_requires,

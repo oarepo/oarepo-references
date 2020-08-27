@@ -43,12 +43,72 @@ SPHINX-END
 
 from __future__ import absolute_import, print_function
 
-from flask import Flask
+import os
+
+from flask import Flask, url_for
 from flask_babelex import Babel
+from invenio_records import Record
+from marshmallow import INCLUDE, Schema, post_load
+from marshmallow.fields import URL, Field
+from oarepo_validate import MarshmallowValidatedRecordMixin
 
 from oarepo_references import OARepoReferences
+from oarepo_references.mixins import ReferenceByLinkFieldMixin, \
+    ReferenceEnabledRecordMixin
+
+
+class ExampleURLReferenceField(ReferenceByLinkFieldMixin, URL):
+    """URL reference marshmallow field."""
+
+
+class ExampleLinksField(Field):
+    """Taxonomy links field."""
+    self = ExampleURLReferenceField()
+
+
+class ExampleInlineReferenceSchema(Schema):
+    """Taxonomy schema."""
+
+    class Meta:
+        unknown = INCLUDE
+
+    @post_load
+    def update_inline_changes(self, data, many, **kwargs):
+        changes = self.context.get('changed_reference', None)
+        if changes and changes['url'] == self.self_url(data):
+            data = changes['content']
+        return data
+
+    @post_load
+    def register_reference(self, data, many, **kwargs):
+        url = self.self_url(data)
+        self.register(url)
+        return data
+
+    @classmethod
+    def self_url(cls, data):
+        return data.get('links', {}).get('self', None)
+
+
+class ExampleRecord(MarshmallowValidatedRecordMixin,
+                    ReferenceEnabledRecordMixin,
+                    Record):
+    """References enabled example record class."""
+    MARSHMALLOW_SCHEMA = ExampleInlineReferenceSchema
+    VALIDATE_MARSHMALLOW = True
+    VALIDATE_PATCH = True
+
+    @property
+    def canonical_url(self):
+        return url_for('invenio_records_rest.recid_item',
+                       pid_value=self['pid'], _external=True)
+
 
 # Create Flask application
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI', "sqlite:///:memory:")
+app.config['SERVER_NAME'] = os.environ.get('SERVER_NAME', '127.0.0.1:5000')
+app.config['PREFERRED_URL_SCHEME'] = 'http'
+app.config["SQLALCHEMY_ECHO"] = True
 Babel(app)
 OARepoReferences(app)

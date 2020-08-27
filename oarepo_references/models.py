@@ -12,9 +12,82 @@ from __future__ import absolute_import, print_function
 import uuid
 
 from invenio_db import db
+from invenio_records import Record
 from invenio_records.models import Timestamp
-from sqlalchemy import String, UniqueConstraint
+from sqlalchemy import Boolean, Integer, String, UniqueConstraint
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import relationship
+from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy_utils.types import UUIDType
+
+from oarepo_references.utils import class_import_string, get_record_object
+
+
+class ClassName(db.Model, Timestamp):
+    """Represents a record class lookup table."""
+
+    __tablename__ = 'oarepo_references_classname'
+
+    id = db.Column(Integer, primary_key=True)
+    name = db.Column(String, index=True, unique=True)
+
+    def __init__(self, name):
+        """Initialize ClassName instance."""
+        self.name = name
+
+    @classmethod
+    def create(cls, name):
+        """Create a ClassName instance."""
+        with db.session.begin_nested():
+            ret = cls(name=name)
+            db.session.add(ret)
+            return ret
+
+
+class ReferencingRecord(db.Model, Timestamp):
+    """Represents a lookup table for classes of referencing records."""
+
+    __tablename__ = 'oarepo_references_referencing_record'
+
+    def __init__(self,
+                 record_uuid: uuid.UUID,
+                 class_name: ClassName):
+        """Initialize record reference instance."""
+        self.record_uuid = record_uuid
+        self.class_name = class_name
+
+    @classmethod
+    def create(cls, record_uuid, class_name):
+        """
+        Create a new ReferencingRecord.
+
+        :param record_uuid: UUID of the referencing record
+        :param class_id: reference to a class of a referencing record
+        :return an instance of a created ReferencingRecord
+        """
+        with db.session.begin_nested():
+            ret = cls(record_uuid=record_uuid, class_name=class_name)
+            db.session.add(ret)
+            return ret
+
+    id = db.Column(Integer, primary_key=True)
+    record_uuid = db.Column(
+        UUIDType,
+        index=True,
+        unique=True,
+        nullable=True
+    )
+    references = relationship('RecordReference',
+                              backref='record',
+                              cascade="all, delete",
+                              passive_deletes=True)
+    class_id = db.Column(Integer,
+                         db.ForeignKey(
+                             ClassName.id,
+                             name='fk_oarepo_references_class_id_classname',
+                             ondelete='CASCADE'
+                         ))
+    class_name = relationship('ClassName', cascade="all, delete", passive_deletes=True)
 
 
 class RecordReference(db.Model, Timestamp):
@@ -28,19 +101,63 @@ class RecordReference(db.Model, Timestamp):
     # Enables SQLAlchemy-Continuum versioning
     __versioned__ = {}
 
-    __tablename__ = 'oarepo_records_references'
+    __tablename__ = 'oarepo_references'
+    __table_args__ = (UniqueConstraint('record_id',
+                                       'reference',
+                                       name='uq_oarepo_references_record_id_reference'),)
 
-    __table_args__ = (UniqueConstraint('record_uuid', 'reference', name='_record_reference_uc'),)
-
-    def __init__(self, record_uuid: uuid.UUID, reference: str, reference_uuid: uuid.UUID):
+    def __init__(self,
+                 record: ReferencingRecord,
+                 reference: str,
+                 reference_uuid: uuid.UUID,
+                 inline: bool):
         """Initialize record reference instance.
 
-        :param record_uuid: ID of an Invenio record
-        :param reference: value of $ref reference
+        :param record: instance of a referencing Invenio record
+        :param reference: URL of a referenced object
+        :param reference_uuid: UUID of a referenced object (optional)
+        :param inline: Referenced object data inlined into referencing record?
         """
-        self.record_uuid = record_uuid
+        self.record = record
         self.reference = reference
         self.reference_uuid = reference_uuid
+        self.inline = inline
+
+    @classmethod
+    def create(cls, record: Record, reference, reference_uuid, inline=False):
+        """Creates a new Reference Record.
+
+        :param record: an Invenio Record instance
+        :param reference: URL reference to the referenced object
+        :param reference_uuid: UUID of the referenced object
+        :param inline: is referenced object data inlined into the referencing record?
+        :return: an instance of the created RecordReference
+        """
+        if RecordReference.query \
+                .join(ReferencingRecord, aliased=True) \
+                .filter(ReferencingRecord.record_uuid == record.id)\
+                .filter(RecordReference.reference == reference).count() > 0:
+            raise IntegrityError('Error creating reference record - already exists', '', [], None)
+        with db.session.begin_nested():
+            reccls = str(class_import_string(record))
+            try:
+                cn = ClassName.query.filter_by(name=reccls).one()
+            except NoResultFound:
+                cn = ClassName.create(reccls)
+
+            try:
+                rr = ReferencingRecord.query.filter_by(record_uuid=record.id).one()
+            except NoResultFound:
+                rr = ReferencingRecord.create(record.id, cn)
+
+            ret = cls(
+                record=rr,
+                reference=reference,
+                reference_uuid=reference_uuid,
+                inline=inline)
+
+            db.session.add(ret)
+            return ret
 
     id = db.Column(
         UUIDType,
@@ -49,12 +166,12 @@ class RecordReference(db.Model, Timestamp):
     )
     """Internal DB Record identifier."""
 
-    record_uuid = db.Column(
-        UUIDType,
-        index=True,
-        nullable=False
+    record_id = db.Column(
+        db.ForeignKey(ReferencingRecord.id,
+                      name='fk_oarepo_references_record_id_record',
+                      ondelete="CASCADE")
     )
-    """Invenio Record UUID indentifier"""
+    """Invenio Referencing Record info"""
 
     reference = db.Column(
         String(255),
@@ -71,6 +188,11 @@ class RecordReference(db.Model, Timestamp):
     """Invenio Record UUID indentifier of the referenced object
     in case the object is an invenio record"""
 
+    inline = db.Column(
+        Boolean(name='ck_oarepo_references_inline'),
+        default=False
+    )
+
     version_id = db.Column(db.Integer, nullable=False)
     """Used by SQLAlchemy for optimistic concurrency control."""
 
@@ -78,7 +200,13 @@ class RecordReference(db.Model, Timestamp):
         'version_id_col': version_id
     }
 
+    def __repr__(self):
+        """Reference Record representation string."""
+        return f'{get_record_object(self)}->{self.reference}'
+
 
 __all__ = (
     'RecordReference',
+    'ReferencingRecord',
+    'ClassName'
 )
