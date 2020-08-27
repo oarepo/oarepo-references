@@ -26,7 +26,7 @@ extras_require = {
         *tests_require
     ],
     'tests-es7': [
-        'oarepo[tests-es7,taxonomies]~={version}'.format(version=OAREPO_VERSION),
+        'oarepo[tests-es7]~={version}'.format(version=OAREPO_VERSION),
         *tests_require
     ]
 }
