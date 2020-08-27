@@ -82,7 +82,7 @@ do the following:
   - Tell Marshmallow, which fields of your marshmallow schema contain references
     by link by inheriting `ReferenceByLinkFieldMixin`:
 
-```
+```python
 class URLReferenceField(ReferenceByLinkFieldMixin, URL):
     """URL reference marshmallow field."""
 ```
@@ -92,7 +92,7 @@ class URLReferenceField(ReferenceByLinkFieldMixin, URL):
     contents, that defines `register_reference` and `update_inline`
     handlers for marshmallow `@post_load` signal, like this:
 
-```
+```python
 class InlinedReferenceSchema(ReferenceFieldMixin, Schema):
     """Inlined reference schema."""
     class Meta:
@@ -118,7 +118,7 @@ class InlinedReferenceSchema(ReferenceFieldMixin, Schema):
 ```
 
   - Use the reference-enabled field in your Marshmallow schema:
-```
+```python
 class ExampleReferencesSchema(Schema):
     """Reference to other objects schema."""
     link = URLReferenceField()
@@ -129,7 +129,7 @@ class ExampleReferencesSchema(Schema):
     Doing so, will add support for automatic Record updates whenever some reference contained in Record metadata
     changes:
 
-```
+```python
 class ExampleRecord(MarshmallowValidatedRecordMixin,
                     ReferenceEnabledRecordMixin,
                     Record):
