@@ -84,7 +84,7 @@ class ReferencingRecord(db.Model, Timestamp):
     class_id = db.Column(Integer,
                          db.ForeignKey(
                              ClassName.id,
-                             name='fk_oarepo_references_referencing_record_class_id_oarepo_references_classname',
+                             name='fk_oarepo_references_class_id_classname',
                              ondelete='CASCADE'
                          ))
     class_name = relationship('ClassName', cascade="all, delete", passive_deletes=True)
@@ -104,7 +104,7 @@ class RecordReference(db.Model, Timestamp):
     __tablename__ = 'oarepo_references'
     __table_args__ = (UniqueConstraint('record_id',
                                        'reference',
-                                       name='uq_oarepo_references_referencing_record_record_id_reference'),)
+                                       name='uq_oarepo_references_record_id_reference'),)
 
     def __init__(self,
                  record: ReferencingRecord,
@@ -168,7 +168,7 @@ class RecordReference(db.Model, Timestamp):
 
     record_id = db.Column(
         db.ForeignKey(ReferencingRecord.id,
-                      name='fk_oarepo_references_record_id_oarepo_references_referencing_record',
+                      name='fk_oarepo_references_record_id_record',
                       ondelete="CASCADE")
     )
     """Invenio Referencing Record info"""
