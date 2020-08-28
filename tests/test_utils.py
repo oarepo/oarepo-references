@@ -12,12 +12,12 @@ from celery import shared_task
 from flask import url_for
 from invenio_records import Record
 from invenio_records_rest.schemas.fields import SanitizedUnicode
-from marshmallow import INCLUDE, Schema, post_load
+from marshmallow import INCLUDE, Schema
 from marshmallow.fields import URL, Integer, Nested
 from oarepo_validate import MarshmallowValidatedRecordMixin
 
 from oarepo_references.mixins import ReferenceByLinkFieldMixin, \
-    ReferenceEnabledRecordMixin, ReferenceFieldMixin
+    ReferenceEnabledRecordMixin, InlineReferenceMixin
 from oarepo_references.utils import get_reference_uuid, run_task_on_referrers
 
 
@@ -25,7 +25,7 @@ class URLReferenceField(ReferenceByLinkFieldMixin, URL):
     """URL reference marshmallow field."""
 
 
-class TaxonomySchema(ReferenceFieldMixin, Schema):
+class TaxonomySchema(InlineReferenceMixin, Schema):
     """Taxonomy schema."""
 
     class Meta:

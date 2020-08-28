@@ -45,6 +45,10 @@ class ReferenceFieldMixin(object):
         except KeyError:
             self.context['references'] = [refspec]
 
+
+class InlineReferenceMixin(ReferenceFieldMixin):
+    """Marshmallow mixin for inlined references."""
+
     @post_load
     def update_inline_changes(self, data, many, **kwargs):
         """Updates contents of the inlined reference."""

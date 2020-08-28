@@ -90,10 +90,10 @@ class URLReferenceField(ReferenceByLinkFieldMixin, URL):
   - If your Marshmallow Scheme holds *inlined* references, you
     will need to define a custom nested schema for inlined reference
     contents, that implements `ref_url` that returns an URL to be used
-    as a reference to the object, like this:
+    as a reference to the object and inherits from `InlineReferenceMixin`, like this:
 
 ```python
-class InlinedReferenceSchema(ReferenceFieldMixin, Schema):
+class InlinedReferenceSchema(InlineReferenceMixin, Schema):
     """Inlined reference schema."""
     class Meta:
         unknown = INCLUDE

@@ -54,7 +54,7 @@ from oarepo_validate import MarshmallowValidatedRecordMixin
 
 from oarepo_references import OARepoReferences
 from oarepo_references.mixins import ReferenceByLinkFieldMixin, \
-    ReferenceEnabledRecordMixin
+    ReferenceEnabledRecordMixin, InlineReferenceMixin
 
 
 class ExampleURLReferenceField(ReferenceByLinkFieldMixin, URL):
@@ -66,7 +66,7 @@ class ExampleLinksField(Field):
     self = ExampleURLReferenceField()
 
 
-class ExampleInlineReferenceSchema(Schema):
+class ExampleInlineReferenceSchema(InlineReferenceMixin, Schema):
     """Taxonomy schema."""
 
     class Meta:
