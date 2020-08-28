@@ -13,7 +13,7 @@ from tests.conftest import get_pid
 from tests.test_utils import TaxonomyRecord, TestRecord
 
 from oarepo_references.models import RecordReference, ReferencingRecord
-from oarepo_references.proxies import current_oarepo_references
+from oarepo_references.proxies import current_references
 from oarepo_references.signals import create_references_record, \
     delete_references_record, set_references_from_context
 
@@ -94,7 +94,7 @@ def test_update_references_record(db, test_record_data):
     content['title'] = 'change'
     content.pop('pid')
 
-    current_oarepo_references.reference_content_changed(
+    current_references.reference_content_changed(
         content,
         'http://localhost/api/taxonomies/requestors/a/c/')
 

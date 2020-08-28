@@ -14,7 +14,7 @@ from invenio_records import Record
 from invenio_records.models import RecordMetadata
 
 from oarepo_references.models import RecordReference
-from oarepo_references.proxies import current_oarepo_references
+from oarepo_references.proxies import current_references
 
 
 @click.group()
@@ -37,4 +37,4 @@ def synchronize(clear):
 
     for rec in records:
         click.echo('Updating reference records for record: {}'.format(rec.id))
-        current_oarepo_references.update_references_from_record(rec)
+        current_references.update_references_from_record(rec)

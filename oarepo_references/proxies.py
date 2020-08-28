@@ -12,6 +12,6 @@ from __future__ import absolute_import, print_function
 from flask import current_app
 from werkzeug.local import LocalProxy
 
-current_oarepo_references = LocalProxy(
+current_references = LocalProxy(
     lambda: current_app.extensions['oarepo-references'])
 """Helper proxy to access oarepo references state object."""

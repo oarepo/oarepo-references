@@ -8,9 +8,7 @@
 """OArepo module for tracking and updating references in Invenio records."""
 import typing
 
-from marshmallow import missing
-
-from oarepo_references.schemas.fields.reference import ReferenceFieldMixin
+from marshmallow import missing, post_load
 
 
 class ReferenceEnabledRecordMixin(object):
@@ -30,6 +28,36 @@ class ReferenceEnabledRecordMixin(object):
             'old_url': old_url,
             'new_url': new_url
         })
+
+
+class ReferenceFieldMixin(object):
+    """Field Mixin representing a reference to another object."""
+
+    def register(self, reference, reference_uuid=None, inline=True):
+        """Registers a reference to the validation context."""
+        refspec = dict(
+            reference=reference,
+            reference_uuid=reference_uuid,
+            inline=inline
+        )
+        try:
+            self.context['references'].append(refspec)
+        except KeyError:
+            self.context['references'] = [refspec]
+
+    @post_load
+    def update_inline_changes(self, data, many, **kwargs):
+        changes = self.context.get('changed_reference', None)
+        if changes and changes['url'] == self.ref_url(data):
+            data = changes['content']
+
+        return data
+
+    @post_load
+    def register_reference(self, data, many, **kwargs):
+        url = self.ref_url(data)
+        self.register(url)
+        return data
 
 
 class ReferenceByLinkFieldMixin(ReferenceFieldMixin):

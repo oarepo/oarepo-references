@@ -13,7 +13,7 @@ from invenio_records_rest.errors import PIDRESTException
 from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.exceptions import NotFound
 
-from oarepo_references.proxies import current_oarepo_references
+from oarepo_references.proxies import current_references
 
 
 def class_import_string(o):
@@ -30,7 +30,7 @@ def run_task_on_referrers(reference, task, success_task=None, error_task=None):
     :param success_task: a celery signature to handle success of task chain
     :param error_task: a celery signature to handle error of a certain task
     """
-    refs = current_oarepo_references.get_records(reference)
+    refs = current_references.get_records(reference)
 
     task_list = []
     rec_list = []

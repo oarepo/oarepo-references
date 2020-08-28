@@ -9,7 +9,7 @@
 import pytest
 from tests.test_utils import TestSchema
 
-from oarepo_references.schemas.fields.reference import ReferenceFieldMixin
+from oarepo_references.mixins import ReferenceFieldMixin
 
 
 @pytest.mark.usefixtures("db")

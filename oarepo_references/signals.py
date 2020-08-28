@@ -16,7 +16,7 @@ from invenio_records.signals import after_record_delete, after_record_insert, \
 from oarepo_validate import after_marshmallow_validate
 
 from oarepo_references.models import RecordReference
-from oarepo_references.proxies import current_oarepo_references
+from oarepo_references.proxies import current_references
 
 _signals = Namespace()
 
@@ -67,10 +67,10 @@ def update_references_record(sender, record, *args, **kwargs):
     assert record.canonical_url is not None, \
         'oarepo_references requires the canonical_url property on a record instance'
 
-    return current_oarepo_references.reference_content_changed(record, record.canonical_url)
+    return current_references.reference_content_changed(record, record.canonical_url)
 
 
 @after_record_delete.connect
 def delete_references_record(sender, record, *args, **kwargs):
     """A signal receiver that deletes all reference records of a deleted Record."""
-    return current_oarepo_references.delete_references_record(record)
+    return current_references.delete_references_record(record)
