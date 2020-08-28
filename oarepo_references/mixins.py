@@ -47,6 +47,7 @@ class ReferenceFieldMixin(object):
 
     @post_load
     def update_inline_changes(self, data, many, **kwargs):
+        """Updates contents of the inlined reference."""
         changes = self.context.get('changed_reference', None)
         if changes and changes['url'] == self.ref_url(data):
             data = changes['content']
@@ -55,6 +56,7 @@ class ReferenceFieldMixin(object):
 
     @post_load
     def register_reference(self, data, many, **kwargs):
+        """Registers reference to the validation context."""
         url = self.ref_url(data)
         self.register(url)
         return data

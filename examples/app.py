@@ -48,7 +48,7 @@ import os
 from flask import Flask, url_for
 from flask_babelex import Babel
 from invenio_records import Record
-from marshmallow import INCLUDE, Schema, post_load
+from marshmallow import INCLUDE, Schema
 from marshmallow.fields import URL, Field
 from oarepo_validate import MarshmallowValidatedRecordMixin
 
@@ -72,21 +72,7 @@ class ExampleInlineReferenceSchema(Schema):
     class Meta:
         unknown = INCLUDE
 
-    @post_load
-    def update_inline_changes(self, data, many, **kwargs):
-        changes = self.context.get('changed_reference', None)
-        if changes and changes['url'] == self.self_url(data):
-            data = changes['content']
-        return data
-
-    @post_load
-    def register_reference(self, data, many, **kwargs):
-        url = self.self_url(data)
-        self.register(url)
-        return data
-
-    @classmethod
-    def self_url(cls, data):
+    def ref_url(self, data):
         return data.get('links', {}).get('self', None)
 
 

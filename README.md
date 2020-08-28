@@ -89,8 +89,8 @@ class URLReferenceField(ReferenceByLinkFieldMixin, URL):
 
   - If your Marshmallow Scheme holds *inlined* references, you
     will need to define a custom nested schema for inlined reference
-    contents, that defines `register_reference` and `update_inline`
-    handlers for marshmallow `@post_load` signal, like this:
+    contents, that implements `ref_url` that returns an URL to be used
+    as a reference to the object, like this:
 
 ```python
 class InlinedReferenceSchema(ReferenceFieldMixin, Schema):
@@ -98,22 +98,7 @@ class InlinedReferenceSchema(ReferenceFieldMixin, Schema):
     class Meta:
         unknown = INCLUDE
 
-    @post_load
-    def update_inline_changes(self, data, many, **kwargs):
-        changes = self.context.get('changed_reference', None)
-        if changes and changes['url'] == self.self_url(data):
-            data = changes['content']
-
-        return data
-
-    @post_load
-    def register_reference(self, data, many, **kwargs):
-        url = self.self_url(data)
-        self.register(url)
-        return data
-
-    @classmethod
-    def self_url(cls, data):
+    def ref_url(self, data):
         return data.get('links').get('self')
 ```
 

@@ -31,8 +31,7 @@ class TaxonomySchema(ReferenceFieldMixin, Schema):
     class Meta:
         unknown = INCLUDE
 
-    @classmethod
-    def ref_url(cls, data):
+    def ref_url(self, data):
         return data.get('links').get('self')
 
 
