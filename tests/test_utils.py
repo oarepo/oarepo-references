@@ -16,8 +16,8 @@ from marshmallow import INCLUDE, Schema
 from marshmallow.fields import URL, Integer, Nested
 from oarepo_validate import MarshmallowValidatedRecordMixin
 
-from oarepo_references.mixins import ReferenceByLinkFieldMixin, \
-    ReferenceEnabledRecordMixin, InlineReferenceMixin
+from oarepo_references.mixins import InlineReferenceMixin, \
+    ReferenceByLinkFieldMixin, ReferenceEnabledRecordMixin
 from oarepo_references.utils import get_reference_uuid, run_task_on_referrers
 
 

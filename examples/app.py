@@ -53,8 +53,8 @@ from marshmallow.fields import URL, Field
 from oarepo_validate import MarshmallowValidatedRecordMixin
 
 from oarepo_references import OARepoReferences
-from oarepo_references.mixins import ReferenceByLinkFieldMixin, \
-    ReferenceEnabledRecordMixin, InlineReferenceMixin
+from oarepo_references.mixins import InlineReferenceMixin, \
+    ReferenceByLinkFieldMixin, ReferenceEnabledRecordMixin
 
 
 class ExampleURLReferenceField(ReferenceByLinkFieldMixin, URL):
