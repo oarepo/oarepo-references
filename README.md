@@ -142,7 +142,7 @@ managing of reference records whenever a Record changes:
 
 ## Module API
 
-You can access all the API functions this module exposes through the `current_oarepo_references` proxy.
+You can access all the API functions this module exposes through the `current_references` proxy.
 *For more info, see [api.py](https://github.com/oarepo/oarepo-references/blob/master/oarepo_references/api.py)*.
 
 ## Tasks
