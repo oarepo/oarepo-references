@@ -5,11 +5,11 @@ addons:
     packages:
     - rabbitmq-server
   postgresql: "9.6"
-  # TODO: Add mysql addon as well
 
 services:
   - postgresql
   - rabbitmq
+  - redis-server
 
 notifications:
   email: false
@@ -31,7 +31,7 @@ env:
     - ES_HOST=127.0.0.1
   matrix:
     - REQUIREMENTS=release EXTRAS=sqlite,tests ES=$ES7_DOWNLOAD_URL
-    - REQUIREMENTS=release EXTRAS=postgresql,tests ES=$ES7_DOWNLOAD_URL  OAREPO_VERSION=3.2.0 SQLALCHEMY_DATABASE_URI=$POSTGRESQL_SQLALCHEMY_DATABASE_URI
+    - REQUIREMENTS=release EXTRAS=postgresql,tests ES=$ES7_DOWNLOAD_URL SQLALCHEMY_DATABASE_URI=$POSTGRESQL_SQLALCHEMY_DATABASE_URI
 
 python:
   - "3.8"
@@ -45,7 +45,7 @@ before_install:
   - cat .travis-release-requirements.txt
   - mkdir /tmp/elasticsearch
   - wget -O - $ES | tar xz --directory=/tmp/elasticsearch --strip-components=1
-  - "/tmp/elasticsearch/bin/elasticsearch &"
+  - "/tmp/elasticsearch/bin/elasticsearch -Ediscovery.type=single-node &"
   - sleep 10
 
 install:
