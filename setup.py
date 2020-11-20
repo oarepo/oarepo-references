@@ -30,10 +30,6 @@ extras_require = {
         'oarepo[tests]~={version}'.format(version=OAREPO_VERSION),
         *tests_require
     ],
-    'tests-es7': [
-        'oarepo[tests-es7]~={version}'.format(version=OAREPO_VERSION),
-        *tests_require
-    ],
     'validate': [
         'oarepo-validate>=1.1.0',
     ]
