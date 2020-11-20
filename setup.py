@@ -14,10 +14,11 @@ from setuptools import find_packages, setup
 readme = open('README.md').read()
 history = open('CHANGES.rst').read()
 
-OAREPO_VERSION = os.environ.get('OAREPO_VERSION', '3.2.1')
+OAREPO_VERSION = os.environ.get('OAREPO_VERSION', '3.3.0')
 
 tests_require = [
-    'uuid'
+    'uuid',
+    'oarepo-validate'
 ]
 
 extras_require = {
