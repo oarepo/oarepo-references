@@ -21,7 +21,8 @@ tests_require = [
     'oarepo-validate',
     'pydocstyle',
     'isort',
-    'check-manifest'
+    'check-manifest',
+    'pytest-cov'
 ]
 
 extras_require = {
