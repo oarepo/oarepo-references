@@ -20,7 +20,8 @@ tests_require = [
     'uuid',
     'oarepo-validate',
     'pydocstyle',
-    'isort'
+    'isort',
+    'check-manifest'
 ]
 
 extras_require = {
