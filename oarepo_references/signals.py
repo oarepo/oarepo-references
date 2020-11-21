@@ -54,7 +54,8 @@ def create_references_record(sender, record, *args, **kwargs):
         for ref in record.oarepo_references:
             RecordReference.create(record, **ref)
 
-    db.session.commit()
+    # do not call commit as it will be called by the caller of the signal
+    # db.session.commit()
 
     print('CURRENT REFERENCES:')
     for ref in RecordReference.query.all():
