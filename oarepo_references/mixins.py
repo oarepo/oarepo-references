@@ -6,6 +6,7 @@
 # it under the terms of the MIT License; see LICENSE file for more details.
 
 """OArepo module for tracking and updating references in Invenio records."""
+import abc
 import typing
 
 import uuid
@@ -13,6 +14,7 @@ import uuid
 from flask import current_app
 from flask_principal import Permission
 from invenio_base.utils import obj_or_import_string
+from invenio_indexer.api import RecordIndexer
 from invenio_pidstore import current_pidstore
 from marshmallow import missing, post_load, pre_load
 
@@ -102,11 +104,30 @@ class InlineReferenceMixin(ReferenceFieldMixin):
 
 
 class CreateInlineReferenceMixin(InlineReferenceMixin):
+    """
+    A mixin for creating inline references during creation of enclosing record.
+    """
     permission_factory = None
+    """
+    A factory to return permissions. The factory is used in the code as follows:
+    ```
+        perm = permission_factory(data=<data being validated>, schema=<instance of this class>)
+        Permission(perm).require(http_exception=403)
+    ```
+    """
     object_serializer = None
+    """
+    If set, it is a callable that gets passed the created reference data and should return
+    json-friendly representation of the data. For example, it can serialize invenio Record
+    into a dictionary, omitting technical metadata (such as bucket id).
+    """
 
     @pre_load
     def create_record_if_needed(self, data, many, **kwargs):
+        """
+        A pre-load hook called by marshmallow that checks if referenced record needs to be created
+        and creates it if so.
+        """
         already_created = False
         try:
             already_created = self.ref_url(data) is not None
@@ -131,15 +152,27 @@ class CreateInlineReferenceMixin(InlineReferenceMixin):
         return object_data
 
     def check_create_referenced_object_permissions(self, data):
+        """
+        Check if the caller can create a referenced record from the data. If not,
+        an exception should be raised.
+        """
         permission_factory = obj_or_import_string(self.permission_factory)
         if permission_factory:
             perm = permission_factory(data=data, schema=self)
             Permission(perm).require(http_exception=403)
 
     def create_referenced_object(self, data):
+        """
+        Create the referenced object from data.
+        """
         raise RuntimeError('Implement "create_referenced_object" in your inline reference mixin')
 
     def serialize_created_object(self, created_object):
+        """
+        Serialize the created object into json-friendly representation. The default implementation
+        checks for self.object_serializer, if it is defined it is applied to created object.
+        If not, the created object is wrapped by dict().
+        """
         object_serializer = obj_or_import_string(self.object_serializer)
         if object_serializer:
             object_data = object_serializer(created_object)
@@ -148,13 +181,26 @@ class CreateInlineReferenceMixin(InlineReferenceMixin):
         return object_data
 
     def postprocess_created_object_data(self, object_data):
+        """
+        Perform any post-processing to the created data.
+        """
         return object_data
 
 
 class CreateInlineRecordReferenceMixin(CreateInlineReferenceMixin):
+    """
+    A mixin for creating inline referenced record during creation of enclosing record.
+    """
     pid_type = None
+    """
+    PID type of the referenced record.
+    """
 
     def get_endpoint(self, test_func=lambda x: True):
+        """
+        Get endpoint configuration from the pid type.
+        If test_func is set, filter the candidates by this test function.
+        """
         pid_type = self.pid_type
         # at first take default prefixes and then the rest
         for expected_default_endpoint_prefix in (True, False):
@@ -167,6 +213,9 @@ class CreateInlineRecordReferenceMixin(CreateInlineReferenceMixin):
         return None, None
 
     def get_endpoint_prop(self, prop):
+        """
+        Get property from the endpoint associated with the current pid type.
+        """
         if self.pid_type is None:
             raise NotImplementedError(f'Specify either "{prop}" or "pid_type" on class {type(self)}')
         endpoint_name, endpoint = self.get_endpoint(lambda x: x.get(prop))
@@ -176,22 +225,44 @@ class CreateInlineRecordReferenceMixin(CreateInlineReferenceMixin):
 
     @property
     def pid_minter(self):
+        """
+        Return pid minter for the referenced record.
+        """
         return self.get_endpoint_prop('pid_minter')
 
     @property
     def record_class(self):
+        """
+        Return record class for the referenced record.
+        """
         return self.get_endpoint_prop('record_class')
 
     @property
     def record_indexer(self):
+        """
+        Return indexer for the referenced record.
+        """
         return self.get_endpoint_prop('record_indexer')
 
+    @property
+    def index_name(self):
+        """
+        Return name of the ES index for the referenced record.
+        """
+        return self.get_endpoint_prop('index_name')
+
     def _resolve_minter(self, minter):
+        """
+        Return pid minter (as string) into minter callable.
+        """
         if isinstance(minter, str):
             return current_pidstore.minters[minter]
         return minter
 
     def create_referenced_object(self, data):
+        """
+        Create referenced record, mint its pid, index it in elasticsearch if needed.
+        """
         record_uuid = uuid.uuid4()
         minter = self._resolve_minter(self.pid_minter)
         minter(record_uuid, data)
@@ -201,6 +272,9 @@ class CreateInlineRecordReferenceMixin(CreateInlineReferenceMixin):
         return created_record
 
     def index_record(self, created_record):
-        indexer = obj_or_import_string(self.record_indexer)
-        if indexer:
+        """
+        Index created record in elasticsearch if needed.
+        """
+        indexer = obj_or_import_string(self.record_indexer) or RecordIndexer
+        if self.index_name:
             return indexer().index(created_record)
