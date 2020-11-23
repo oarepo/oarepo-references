@@ -8,7 +8,6 @@
 """OArepo module for tracking and updating references in Invenio records."""
 import abc
 import typing
-
 import uuid
 
 from flask import current_app
