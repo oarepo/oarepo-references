@@ -1,15 +1,15 @@
 dist: xenial
 
 addons:
-  apt:
-    packages:
-    - rabbitmq-server
+  # apt:
+  #   packages:
+  #   - rabbitmq-server
   postgresql: "9.6"
 
 services:
   - postgresql
-  - rabbitmq
-  - redis
+  # - rabbitmq
+  # - redis
 
 notifications:
   email: false
