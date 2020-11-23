@@ -42,7 +42,7 @@ def celery_config():
     """Celery app test configuration."""
     return {
         'broker_url': 'amqp://',
-        'result_backend': 'redis://'
+        'result_backend': 'ipc://'
     }
 
 

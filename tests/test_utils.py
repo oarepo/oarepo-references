@@ -84,13 +84,13 @@ class TaxonomyRecord(MarshmallowValidatedRecordMixin,
                        pid_value=self['pid'], _external=True)
 
 
-@pytest.mark.celery(result_backend='redis://')
+@pytest.mark.celery()
 def test_run_task_on_referrers(referencing_records,
                                referenced_records,
                                celery_app,
                                celery_includes):
     """Test that tasks are launched on referring records."""
-    referred = 'http://localhost/api/records/1'
+    referred = 'http://localhost/records/1'
     referers = [
         referencing_records[0],
         referencing_records[2],
