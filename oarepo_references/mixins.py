@@ -182,6 +182,10 @@ class CreateInlineRecordReferenceMixin(CreateInlineReferenceMixin):
     def record_class(self):
         return self.get_endpoint_prop('record_class')
 
+    @property
+    def record_indexer(self):
+        return self.get_endpoint_prop('record_indexer')
+
     def _resolve_minter(self, minter):
         if isinstance(minter, str):
             return current_pidstore.minters[minter]
@@ -193,4 +197,10 @@ class CreateInlineRecordReferenceMixin(CreateInlineReferenceMixin):
         minter(record_uuid, data)
         record_class = obj_or_import_string(self.record_class)
         created_record = record_class.create(data, id_=record_uuid)
+        self.index_record(created_record)
         return created_record
+
+    def index_record(self, created_record):
+        indexer = obj_or_import_string(self.record_indexer)
+        if indexer:
+            return indexer().index(created_record)
