@@ -211,7 +211,7 @@ class CreateInlineRecordReferenceMixin(CreateInlineReferenceMixin):
                     return endpoint_name, endpoint
         return None, None
 
-    def get_endpoint_prop(self, prop):
+    def get_endpoint_prop(self, prop, raise_exception=True):
         """
         Get property from the endpoint associated with the current pid type.
         """
@@ -219,7 +219,10 @@ class CreateInlineRecordReferenceMixin(CreateInlineReferenceMixin):
             raise NotImplementedError(f'Specify either "{prop}" or "pid_type" on class {type(self)}')
         endpoint_name, endpoint = self.get_endpoint(lambda x: x.get(prop))
         if not endpoint:
-            raise AttributeError(f'Could not get {prop} for pid type {self.pid_type}')
+            if raise_exception:
+                raise AttributeError(f'Could not get {prop} for pid type {self.pid_type}')
+            else:
+                return None
         return endpoint[prop]
 
     @property
@@ -241,14 +244,14 @@ class CreateInlineRecordReferenceMixin(CreateInlineReferenceMixin):
         """
         Return indexer for the referenced record.
         """
-        return self.get_endpoint_prop('record_indexer')
+        return self.get_endpoint_prop('record_indexer', raise_exception=False)
 
     @property
     def index_name(self):
         """
         Return name of the ES index for the referenced record.
         """
-        return self.get_endpoint_prop('index_name')
+        return self.get_endpoint_prop('index_name', raise_exception=False)
 
     def _resolve_minter(self, minter):
         """
@@ -274,6 +277,6 @@ class CreateInlineRecordReferenceMixin(CreateInlineReferenceMixin):
         """
         Index created record in elasticsearch if needed.
         """
-        indexer = obj_or_import_string(self.record_indexer) or RecordIndexer
         if self.index_name:
+            indexer = obj_or_import_string(self.record_indexer or RecordIndexer)
             return indexer().index(created_record)

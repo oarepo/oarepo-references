@@ -13,7 +13,7 @@ from blinker import Namespace
 from invenio_db import db
 from invenio_records.signals import after_record_delete, after_record_insert, \
     after_record_update
-from oarepo_validate import after_marshmallow_validate
+from oarepo_validate import before_marshmallow_validate, after_marshmallow_validate
 
 from oarepo_references.models import RecordReference
 from oarepo_references.proxies import current_references
@@ -35,11 +35,17 @@ from `kwarg['record']`.
 """
 
 
+@before_marshmallow_validate.connect
+def set_references_to_context(sender, context, **kwargs):
+    """A signal receiver to set record references from validation context."""
+    if 'references' not in context:
+        context['references'] = []
+
+
 @after_marshmallow_validate.connect
 def set_references_from_context(sender, record, context, result, **kwargs):
     """A signal receiver to set record references from validation context."""
     record.oarepo_references = context.get('references', [])
-    print('SETTING REFERENCE CONTEXT TO:', record.oarepo_references, record)
     return record
 
 
@@ -48,18 +54,8 @@ def create_references_record(sender, record, *args, **kwargs):
     """A signal receiver that creates record references on record create."""
     assert record.oarepo_references is not None, \
         "oarepo_references needs to be set on a record instance"
-
-    print('CREATE REFERENCE RECORDS FROM:', record.oarepo_references, record)
     with db.session.begin_nested():
-        for ref in record.oarepo_references:
-            RecordReference.create(record, **ref)
-
-    # do not call commit as it will be called by the caller of the signal
-    # db.session.commit()
-
-    print('CURRENT REFERENCES:')
-    for ref in RecordReference.query.all():
-        print(ref)
+        RecordReference.update_references(record, record.oarepo_references)
 
 
 @after_record_update.connect
@@ -68,7 +64,9 @@ def update_references_record(sender, record, *args, **kwargs):
     assert record.canonical_url is not None, \
         'oarepo_references requires the canonical_url property on a record instance'
 
-    return current_references.reference_content_changed(record, record.canonical_url)
+    with db.session.begin_nested():
+        RecordReference.update_references(record, record.oarepo_references)
+        return current_references.reference_content_changed(record, record.canonical_url)
 
 
 @after_record_delete.connect

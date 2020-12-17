@@ -124,7 +124,7 @@ class RecordReference(db.Model, Timestamp):
         self.inline = inline
 
     @classmethod
-    def create(cls, record: Record, reference, reference_uuid, inline=False):
+    def create(cls, record: Record, reference, reference_uuid, inline=False, raise_on_duplicit=True):
         """Creates a new Reference Record.
 
         :param record: an Invenio Record instance
@@ -134,10 +134,12 @@ class RecordReference(db.Model, Timestamp):
         :return: an instance of the created RecordReference
         """
         if RecordReference.query \
-                .join(ReferencingRecord, aliased=True) \
-                .filter(ReferencingRecord.record_uuid == record.id)\
-                .filter(RecordReference.reference == reference).count() > 0:
-            raise IntegrityError('Error creating reference record - already exists', '', [], None)
+            .join(ReferencingRecord, aliased=True) \
+            .filter(ReferencingRecord.record_uuid == record.id) \
+            .filter(RecordReference.reference == reference).count() > 0:
+            if raise_on_duplicit:
+                raise IntegrityError('Error creating reference record - already exists', '', [], None)
+            return None
         with db.session.begin_nested():
             reccls = str(class_import_string(record))
             try:
@@ -158,6 +160,34 @@ class RecordReference(db.Model, Timestamp):
 
             db.session.add(ret)
             return ret
+
+    @classmethod
+    def update_references(cls, record, references):
+
+        refs = {}
+        for ref in (references or []):
+            refs[ref['reference']] = ref
+
+        refs_set = set(refs.keys())
+
+        existing_refs = set(
+            ref.reference
+            for ref in RecordReference.query \
+                .join(ReferencingRecord, aliased=True) \
+                .filter(ReferencingRecord.record_uuid == record.id)
+        )
+
+        new_refs = refs_set - existing_refs
+        obsolete_refs = existing_refs - refs_set
+
+        for ref_key in new_refs:
+            RecordReference.create(record, **refs[ref_key])
+
+        if obsolete_refs:
+            RecordReference.query \
+                .join(ReferencingRecord, aliased=True) \
+                .filter(ReferencingRecord.record_uuid == record.id) \
+                .filter(RecordReference.reference.in_(obsolete_refs))
 
     id = db.Column(
         UUIDType,
