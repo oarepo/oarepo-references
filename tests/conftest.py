@@ -41,8 +41,8 @@ def references_api():
 def celery_config():
     """Celery app test configuration."""
     return {
-        'broker_url': 'amqp://',
-        'result_backend': 'redis://'
+        'broker_url': 'memory://localhost/',
+        'result_backend': 'rpc'
     }
 
 
@@ -57,7 +57,9 @@ def app_config(app_config):
             'SQLALCHEMY_DATABASE_URI',
             'sqlite:///:memory:'),
         SERVER_NAME='localhost',
-        CELERY_TASK_ALWAYS_EAGER=True
+        CELERY_ALWAYS_EAGER=True,
+        CELERY_BROKER_URL='memory://localhost/',
+        CELERY_RESULT_BACKEND='rpc'
     )
     app_config['PIDSTORE_RECID_FIELD'] = 'pid'
     app_config['RECORDS_REST_ENDPOINTS'] = dict(

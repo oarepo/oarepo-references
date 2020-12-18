@@ -10,6 +10,14 @@
 from __future__ import absolute_import, print_function
 
 from .ext import OARepoReferences
+from .mixins import CreateInlineRecordReferenceMixin, \
+    CreateInlineReferenceMixin, InlineReferenceMixin, \
+    ReferenceByLinkFieldMixin, ReferenceEnabledRecordMixin, \
+    ReferenceFieldMixin
 from .version import __version__
 
-__all__ = ('__version__', 'OARepoReferences')
+__all__ = (
+    '__version__', 'OARepoReferences',
+    'ReferenceEnabledRecordMixin', 'InlineReferenceMixin', 'ReferenceFieldMixin',
+    'CreateInlineRecordReferenceMixin', 'CreateInlineReferenceMixin', 'ReferenceByLinkFieldMixin'
+)

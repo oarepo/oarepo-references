@@ -14,19 +14,20 @@ from setuptools import find_packages, setup
 readme = open('README.md').read()
 history = open('CHANGES.rst').read()
 
-OAREPO_VERSION = os.environ.get('OAREPO_VERSION', '3.2.1')
+OAREPO_VERSION = os.environ.get('OAREPO_VERSION', '3.3.0')
 
 tests_require = [
-    'uuid'
+    'uuid',
+    'oarepo-validate',
+    'pydocstyle',
+    'isort',
+    'check-manifest',
+    'pytest-cov'
 ]
 
 extras_require = {
     'tests': [
         'oarepo[tests]~={version}'.format(version=OAREPO_VERSION),
-        *tests_require
-    ],
-    'tests-es7': [
-        'oarepo[tests-es7]~={version}'.format(version=OAREPO_VERSION),
         *tests_require
     ],
     'validate': [

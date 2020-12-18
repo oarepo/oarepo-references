@@ -7,6 +7,6 @@
 # it under the terms of the MIT License; see LICENSE file for more details.
 
 pydocstyle oarepo_references tests && \
-isort -rc -c -df && \
+isort -rc . && \
 check-manifest --ignore ".travis-*" && \
 pytest

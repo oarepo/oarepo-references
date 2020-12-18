@@ -72,9 +72,16 @@ def test_create_references_record(db, referencing_records, test_record_data):
         'http://localhost/api/taxonomies/requestors/a/c/2'
     }
 
-    # Test calling create on already existing record uuid fails
-    with pytest.raises(IntegrityError):
-        create_references_record(referencing_records[0], referencing_records[0], throw=True)
+    # Test calling create on already existing record should not fail and do noop
+    create_references_record(referencing_records[0], referencing_records[0], throw=True)
+    db.session.commit()
+
+    rr = ReferencingRecord.query.filter(ReferencingRecord.record_uuid == new_rec.id).one()
+    assert len(rr.references) == 2
+    assert set([r.reference for r in rr.references]) == {
+        'http://localhost/api/taxonomies/requestors/a/b/1',
+        'http://localhost/api/taxonomies/requestors/a/c/2'
+    }
 
 
 def test_update_references_record(db, test_record_data):
