@@ -189,7 +189,7 @@ class RecordReference(db.Model, Timestamp):
                     .join(ReferencingRecord, aliased=True) \
                     .filter(ReferencingRecord.record_uuid == record.id) \
                     .filter(RecordReference.reference.in_(obsolete_refs)):
-                x.delete()
+                db.session.delete(x)
 
     id = db.Column(
         UUIDType,
