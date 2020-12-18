@@ -184,11 +184,12 @@ class RecordReference(db.Model, Timestamp):
             RecordReference.create(record, **refs[ref_key])
 
         if obsolete_refs:
-            RecordReference.query \
-                .join(ReferencingRecord, aliased=True) \
-                .filter(ReferencingRecord.record_uuid == record.id) \
-                .filter(RecordReference.reference.in_(obsolete_refs))\
-                .delete()
+            for x in \
+                RecordReference.query \
+                    .join(ReferencingRecord, aliased=True) \
+                    .filter(ReferencingRecord.record_uuid == record.id) \
+                    .filter(RecordReference.reference.in_(obsolete_refs)):
+                x.delete()
 
     id = db.Column(
         UUIDType,
