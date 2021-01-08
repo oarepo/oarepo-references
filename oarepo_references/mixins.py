@@ -94,7 +94,7 @@ class InlineReferenceMixin(ReferenceFieldMixin):
 
         return data
 
-    @validates_schema
+    @validates_schema(skip_on_field_errors=False)
     def register_reference(self, data, *args, **kwargs):
         """Registers reference to the validation context."""
         url = self.ref_url(data)
