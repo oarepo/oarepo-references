@@ -15,7 +15,7 @@ from flask_principal import Permission
 from invenio_base.utils import obj_or_import_string
 from invenio_indexer.api import RecordIndexer
 from invenio_pidstore import current_pidstore
-from marshmallow import missing, post_load, pre_load
+from marshmallow import missing, post_load, pre_load, validates_schema
 
 
 class ReferenceEnabledRecordMixin(object):
@@ -85,7 +85,7 @@ class ReferenceByLinkFieldMixin(ReferenceFieldMixin):
 class InlineReferenceMixin(ReferenceFieldMixin):
     """Marshmallow mixin for inlined references."""
 
-    @post_load
+    @pre_load
     def update_inline_changes(self, data, many, **kwargs):
         """Updates contents of the inlined reference."""
         changes = self.context.get('changed_reference', None)
@@ -94,8 +94,8 @@ class InlineReferenceMixin(ReferenceFieldMixin):
 
         return data
 
-    @post_load
-    def register_reference(self, data, many, **kwargs):
+    @validates_schema
+    def register_reference(self, data, *args, **kwargs):
         """Registers reference to the validation context."""
         url = self.ref_url(data)
         self.register(url)
