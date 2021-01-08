@@ -86,9 +86,7 @@ class TaxonomyRecord(MarshmallowValidatedRecordMixin,
 
 @pytest.mark.celery()
 def test_run_task_on_referrers(referencing_records,
-                               referenced_records,
-                               celery_app,
-                               celery_includes):
+                               referenced_records):
     """Test that tasks are launched on referring records."""
     referred = 'http://localhost/records/1'
     referers = [
