@@ -100,6 +100,9 @@ class InlinedReferenceSchema(InlineReferenceMixin, Schema):
 
     def ref_url(self, data):
         return data.get('links').get('self')
+
+    def ref_uuid(self, data):
+        return data.get('id', None)
 ```
 
   - Use the reference-enabled field in your Marshmallow schema:
