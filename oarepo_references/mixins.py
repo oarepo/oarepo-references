@@ -90,8 +90,11 @@ class InlineReferenceMixin(ReferenceFieldMixin):
         """Updates contents of the inlined reference."""
         changes = self.context.get('changed_reference', None)
         if changes and changes['url'] == self.ref_url(data):
-            data = changes['content']
+            data = self.postprocess_inline_reference_data(changes['content'])
 
+        return data
+
+    def postprocess_inline_reference_data(self, data):
         return data
 
     @validates_schema(skip_on_field_errors=False)
