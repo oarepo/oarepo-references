@@ -20,6 +20,7 @@ from invenio_db import db as _db
 from invenio_pidstore.providers.recordid import RecordIdProvider
 from sqlalchemy_utils import create_database, database_exists
 from tests.test_utils import TestRecord
+from invenio_search import RecordsSearch
 
 from oarepo_references.api import RecordReferenceAPI
 from oarepo_references.models import ClassName
@@ -67,6 +68,9 @@ def app_config(app_config):
             pid_type='recid',
             pid_minter='recid',
             pid_fetcher='recid',
+            search_class=RecordsSearch,
+            search_index=None,
+            search_type=None,
             record_serializers={
                 'application/json': ('invenio_records_rest.serializers'
                                      ':json_v1_response'),

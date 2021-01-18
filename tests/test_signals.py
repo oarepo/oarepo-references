@@ -41,7 +41,7 @@ def test_set_references_from_context(referencing_records, referenced_records):
     )
 
 
-def test_create_references_record(db, referencing_records, test_record_data):
+def test_create_references_record(db, referencing_records, test_record_data, referenced_records):
     """Test that a reference record is created."""
     new_rec = TestRecord(test_record_data)
 
@@ -53,12 +53,12 @@ def test_create_references_record(db, referencing_records, test_record_data):
     new_rec.oarepo_references = [
         {
             'reference': 'http://localhost/api/taxonomies/requestors/a/b/1',
-            'reference_uuid': None,
+            'reference_uuid': referenced_records[0].id,
             'inline': False
         },
         {
             'reference': 'http://localhost/api/taxonomies/requestors/a/c/2',
-            'reference_uuid': None,
+            'reference_uuid': referenced_records[1].id,
             'inline': False
         }
     ]
@@ -71,6 +71,7 @@ def test_create_references_record(db, referencing_records, test_record_data):
         'http://localhost/api/taxonomies/requestors/a/b/1',
         'http://localhost/api/taxonomies/requestors/a/c/2'
     }
+    assert set([r.reference_uuid for r in rr.references]) == set([r.id for r in referenced_records])
 
     # Test calling create on already existing record should not fail and do noop
     create_references_record(referencing_records[0], referencing_records[0], throw=True)

@@ -97,8 +97,11 @@ class InlineReferenceMixin(ReferenceFieldMixin):
     @validates_schema(skip_on_field_errors=False)
     def register_reference(self, data, *args, **kwargs):
         """Registers reference to the validation context."""
+        uuid = getattr(self, 'ref_uuid', None)
+        if uuid:
+            uuid = uuid(data)
         url = self.ref_url(data)
-        self.register(url)
+        self.register(reference=url, reference_uuid=uuid)
         return data
 
 

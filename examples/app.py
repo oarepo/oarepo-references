@@ -75,6 +75,9 @@ class ExampleInlineReferenceSchema(InlineReferenceMixin, Schema):
     def ref_url(self, data):
         return data.get('links', {}).get('self', None)
 
+    def ref_uuid(self, data):
+        return data.get('id', None)
+
 
 class ExampleRecord(MarshmallowValidatedRecordMixin,
                     ReferenceEnabledRecordMixin,
