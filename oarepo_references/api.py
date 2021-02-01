@@ -20,8 +20,8 @@ from oarepo_references.models import RecordReference, ReferencingRecord
 from oarepo_references.signals import after_reference_update
 from oarepo_references.utils import get_record_object
 
-import logging
-log = logging.getLogger(__name__)
+# import logging
+# log = logging.getLogger(__name__)
 
 class RecordReferenceAPI(object):
     """Represent a record reference."""
@@ -48,11 +48,11 @@ class RecordReferenceAPI(object):
                 found_records_to_update.append((r, rec))
 
         rec_ids = [r[1].id for r in found_records_to_update]
-        log.error('References: locking %s', [str(x) for x in rec_ids])
+        # log.error('References: locking %s', [str(x) for x in rec_ids])
         locked = list(
-            RecordMetadata.query.filter(RecordMetadata.id.in_ == rec_ids).with_for_update()
+            RecordMetadata.query.filter(RecordMetadata.id.in_(rec_ids)).with_for_update()
         )
-        log.error('References: locked %s', rec_ids)
+        # log.error('References: locked %s', rec_ids)
 
         for r, rec in found_records_to_update:
             # reload the record from the database ... invenio does not have support for this,
@@ -60,7 +60,7 @@ class RecordReferenceAPI(object):
             rec_id = rec.id
             db.session.expire(rec.model)
             rec = type(rec).get_record(rec_id)
-            log.error('References: loaded locked %s: %s', rec.id, rec.model.version_id)
+            # log.error('References: loaded locked %s: %s', rec.id, rec.model.version_id)
             rec.update_inlined_ref(ref_url, ref_uuid, ref_obj)
             updated.append(rec)
 
