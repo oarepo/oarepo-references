@@ -12,6 +12,7 @@ from __future__ import absolute_import, print_function
 from invenio_db import db
 from invenio_indexer.api import RecordIndexer
 from invenio_records import Record
+from invenio_records.models import RecordMetadata
 from invenio_search import current_search_client
 
 from oarepo_references.mixins import ReferenceEnabledRecordMixin
@@ -19,6 +20,8 @@ from oarepo_references.models import RecordReference, ReferencingRecord
 from oarepo_references.signals import after_reference_update
 from oarepo_references.utils import get_record_object
 
+# import logging
+# log = logging.getLogger(__name__)
 
 class RecordReferenceAPI(object):
     """Represent a record reference."""
@@ -38,11 +41,28 @@ class RecordReferenceAPI(object):
 
         updated = []
         records_to_update = cls.get_records(ref_url, exact=True)
+        found_records_to_update = []
         for r in records_to_update:
             rec = get_record_object(r)
             if isinstance(rec, ReferenceEnabledRecordMixin):
-                rec.update_inlined_ref(ref_url, ref_uuid, ref_obj)
-                updated.append(rec)
+                found_records_to_update.append((r, rec))
+
+        rec_ids = [r[1].id for r in found_records_to_update]
+        # log.error('References: locking %s', [str(x) for x in rec_ids])
+        locked = list(
+            RecordMetadata.query.filter(RecordMetadata.id.in_(rec_ids)).with_for_update()
+        )
+        # log.error('References: locked %s', rec_ids)
+
+        for r, rec in found_records_to_update:
+            # reload the record from the database ... invenio does not have support for this,
+            # do it the slow way
+            rec_id = rec.id
+            db.session.expire(rec.model)
+            rec = type(rec).get_record(rec_id)
+            # log.error('References: loaded locked %s: %s', rec.id, rec.model.version_id)
+            rec.update_inlined_ref(ref_url, ref_uuid, ref_obj)
+            updated.append(rec)
 
         return updated
 

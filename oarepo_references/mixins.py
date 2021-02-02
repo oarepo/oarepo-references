@@ -77,7 +77,6 @@ class ReferenceByLinkFieldMixin(ReferenceFieldMixin):
         output = super(ReferenceByLinkFieldMixin, self).deserialize(value, attr, data, **kwargs)
         if output is missing:
             return output
-        print('REGISTERING REFERENCE TO: ', output)
         self.register(output, inline=False)
         return output
 
